@@ -1,5 +1,5 @@
 # PHP Class Map Generator
-Generates class maps of specified directories.
+A PHP class that generates class maps for autoload.
 
 ## Usage
 Instantiate the class with options.

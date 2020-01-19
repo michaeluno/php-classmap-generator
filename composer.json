@@ -1,0 +1,12 @@
+{
+  "name": "michaeluno/php-classmap-generator",
+  "description": "A PHP class that generates class maps for autoload.",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Michael Uno",
+      "email": "michael2@michaeluno.jp"
+    }
+  ]
+}
