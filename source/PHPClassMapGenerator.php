@@ -19,7 +19,7 @@ if ( ! class_exists( 'PHPClassMapGenerator_Base' ) ) {
  * This is meant to be used for the callback function for the spl_autoload_register() function.
  *
  * @remark		The parsed class file must have a name of the class defined in the file.
- * @version		1.0.0
+ * @version		1.0.1
  */
 class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
