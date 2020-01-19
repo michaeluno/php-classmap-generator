@@ -25,13 +25,13 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
     static protected $_aStructure_Options = array(
 
-        'header_class_name'		=>	'',
-        'header_class_path'		=>	'',
-        'output_buffer'			=>	true,
-        'header_type'			=>	'DOCBLOCK',
-        'exclude_classes'		=>	array(),
-        'base_dir_var'			=>	'CLASS_MAP_BASE_DIR_VAR',
-        'output_var_name'		=>	'$aClassMap',
+        'header_class_name'		=> '',
+        'header_class_path'		=> '',
+        'output_buffer'			=> true,
+        'header_type'			=> 'DOCBLOCK',
+        'exclude_classes'		=> array(),
+        'base_dir_var'			=> 'CLASS_MAP_BASE_DIR_VAR',
+        'output_var_name'		=> '$aClassMap',
 
         // Search options
         'search'	=>	array(
@@ -115,7 +115,14 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         }
 
         // 4. Write to a file
-        $this->___write( $_aFiles, $sBaseDirPath, $sOutputFilePath, $_sHeaderComment, $aOptions[ 'output_var_name' ], $aOptions[ 'base_dir_var' ] );
+        $this->___write(
+            $_aFiles,
+            $sBaseDirPath,
+            $sOutputFilePath,
+            $_sHeaderComment,
+            $aOptions[ 'output_var_name' ],
+            $aOptions[ 'base_dir_var' ]
+        );
 
     }
 
@@ -154,7 +161,9 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         $_aData[]	 = mb_convert_encoding( '<?php ' . PHP_EOL . $sHeadingComment, 'UTF-8', 'auto' );
 
         // Start array declaration
-        $_aData[]	 = $sOutputArrayVar . ' = array( ' . PHP_EOL;
+        $_aData[]	 = 'return' === $sOutputArrayVar
+            ? 'return array( ' . PHP_EOL
+            : $sOutputArrayVar . ' = array( ' . PHP_EOL;
 
         // Insert the data
         $sBaseDirVar = $sBaseDirVar ? $sBaseDirVar : '""';

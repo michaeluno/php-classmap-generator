@@ -1,10 +1,9 @@
 <?php
 
 define( 'CLASS_MAP_BASE_DIR_VAR', __DIR__ );
-include( __DIR__ . '/class-map.php' );
 
 
-\Autoload::set( $aClassMap );
+\Autoload::set( include( __DIR__ . '/class-map.php' ) );
 
 $_o = new \Foo\FooClass;
 var_dump( get_class( $_o ) );

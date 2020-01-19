@@ -3,10 +3,17 @@
   "description": "A PHP class that generates class maps for autoload.",
   "minimum-stability": "stable",
   "license": "MIT",
+  "type": "library",
   "authors": [
     {
       "name": "Michael Uno",
       "email": "michael2@michaeluno.jp"
     }
-  ]
+  ],
+  "require": {
+    "php": ">=5.6.20"
+  },
+  "autoload": {
+    "psr-4": {"PHPClassMapGenerator": "source/"}
+  }
 }
