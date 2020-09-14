@@ -85,7 +85,8 @@ class PHPClassMapGenerator_Base {
                         GLOB_BRACE, 
                         $_aExcludingDirPaths, 
                         ( array ) $aSearchOptions[ 'exclude_dir_names' ],
-                        $aSearchOptions[ 'exclude_file_names' ]
+                        $aSearchOptions[ 'exclude_file_names' ],
+                        $aSearchOptions[ 'ignore_note_file_names' ]
                     )
                     : ( array ) glob( $sDirPath . '*.' . $_sFileExtensionPattern, GLOB_BRACE );
                 return array_filter( $_aFilePaths );    // drop non-value elements.    
@@ -100,7 +101,8 @@ class PHPClassMapGenerator_Base {
                         0, 
                         $_aExcludingDirPaths, 
                         ( array ) $aSearchOptions['exclude_dir_names'],
-                        $aSearchOptions['exclude_file_names']
+                        $aSearchOptions['exclude_file_names'],
+                        $aSearchOptions[ 'ignore_note_file_names' ]
                     )
                     : ( array ) glob( $sDirPath . '*.' . $__sAllowedExtension );
                 $_aFilePaths = array_merge( $__aFilePaths, $_aFilePaths );
@@ -151,7 +153,7 @@ class PHPClassMapGenerator_Base {
             /**
              * The recursive version of the glob() function.
              */
-            private function ___doRecursiveGlob( $sPathPatten, $nFlags=0, array $aExcludeDirPaths=array(), array $aExcludeDirNames=array(), array $aExcludeFileNames=array() ) {
+            private function ___doRecursiveGlob( $sPathPatten, $nFlags=0, array $aExcludeDirPaths=array(), array $aExcludeDirNames=array(), array $aExcludeFileNames=array(), array $aIgnoreNotes=array() ) {
 
                 if ( $this->___fileExists( $aIgnoreNotes, dirname( $sPathPatten ) . '/' ) ) {
                     return array();
@@ -180,7 +182,8 @@ class PHPClassMapGenerator_Base {
                             $nFlags, 
                             $aExcludeDirPaths,
                             $aExcludeDirNames,
-                            $aExcludeFileNames
+                            $aExcludeFileNames,
+                            $aIgnoreNotes
                         )
                     );
                     
