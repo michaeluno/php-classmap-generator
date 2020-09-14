@@ -68,7 +68,7 @@ Set a path that the generated list will be written.
 #### 4. Options (optional)
 This parameter accepts an array holding options.
 
- - `output_buffer`		: (boolean)	whether or not output buffer should be printed.     
+ - `output_buffer`		: (boolean)	whether output buffer should be printed.     
  - `exclude_classes` 	: (array)   an array holding class names to exclude.
  - `base_dir_var`		: (string)	the variable or constant name that is prefixed before the inclusion path.
  - `output_var_name`	: (string)  The variable string that the map array is assigned to. Default: `$aClassMap`. If `return` is set, the variable will not be set but the file just returns the generated map array. 
@@ -85,19 +85,19 @@ new \PHPClassMapGenerator\PHPClassMapGenerator(
     dirname( __DIR__ ),
     [ __DIR__ . '/includes', ],
     __DIR__ . '/class-map.php', 
-    array(       
+    [       
         'output_buffer'      => true,
         'exclude_classes'    => [ 'TestClass' ],        
         'output_var_name'   => '$classMap',
         'base_dir_var'      => '\MyProject\Registry::$dirPath',
-        'search'            => array(
-            'allowed_extensions'    => array( 'php' ),
-            'exclude_dir_paths'     => array( __DIR__ . '/includes/class/admin' ),
-            'exclude_dir_names'     => array( '_del', '_bak' ),
+        'search'            => [
+            'allowed_extensions'    => [ 'php' ],
+            'exclude_dir_paths'     => [ __DIR__ . '/includes/class/admin' ],
+            'exclude_dir_names'     => [ '_del', '_bak' ],
             'exclude_file_names'    => [ 'test.php', 'uninsall.php' ],
             'is_recursive'          => true,
-        ),            
-    )
+        ],
+    ]
 );
 ``` 
  
