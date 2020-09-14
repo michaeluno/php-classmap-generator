@@ -7,11 +7,14 @@ define( 'CLASS_MAP_BASE_DIR_VAR', __DIR__ );
 
 $_o = new \Foo\FooClass;
 var_dump( get_class( $_o ) );
+$_o = new \NoNamespace();
+var_dump( get_class( $_o ) );
 
 class Autoload {
     static public function set( array $aClasses ) {
         self::$aAutoLoadClasses = $aClasses + self::$aAutoLoadClasses;
         $_sFunc = function ( $sCalledUnknownClassName ) {
+var_dump( 'autoload: ' . $sCalledUnknownClassName );
             if ( ! isset( self::$aAutoLoadClasses[ $sCalledUnknownClassName ] ) ) {
                 return;
             }
