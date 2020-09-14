@@ -19,19 +19,42 @@ if ( ! class_exists( 'PHPClassMapGenerator_Base' ) ) {
  * This is meant to be used for the callback function for the spl_autoload_register() function.
  *
  * @remark		The parsed class file must have a name of the class defined in the file.
- * @version		1.0.1
+ * @version		1.1.0
  */
 class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
+    public $sBaseDirPath  = '';
+
+    public $aScanDirPaths = array();
+
+    public $sOutputFilePath = '';
+
+    public $aItems = array();
+
+        /**
+     * @var array 
+     * @since   1.1.0
+     */
+    public $aOptions = array();
+
+    /**
+     * @var string 
+     * @since 1.1.0
+     */
+    public $sCarriageReturn = PHP_EOL;
+    
     static protected $_aStructure_Options = array(
 
         'header_class_name'		=> '',
         'header_class_path'		=> '',
         'output_buffer'			=> true,
         'header_type'			=> 'DOCBLOCK',
-        'exclude_classes'		=> array(),
+        'exclude_classes'		=> array(
+            // 'Foo/Bar' // for name spaced classes, include the name space
+        ),
         'base_dir_var'			=> 'CLASS_MAP_BASE_DIR_VAR',
         'output_var_name'		=> '$aClassMap',
+        'do_in_constructor'     => true,        // 1.1.0 Whether to perform the task in the constructor
 
         // Search options
         'search'	=>	array(
@@ -84,74 +107,154 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
     public function __construct( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, array $aOptions=array() ) {
 
         parent::__construct();
+        
+        $this->_setProperties( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, $aOptions );
 
-        $aOptions			= $aOptions + self::$_aStructure_Options;
-        $aOptions[ 'search' ]	= $aOptions[ 'search' ] + self::$_aStructure_Options[ 'search' ];
+        if ( ! $this->aOptions[ 'do_in_constructor' ] ) {
+            return;
+        }
+        $this->do();
 
-        $_sCarriageReturn	= php_sapi_name() == 'cli' ? PHP_EOL : '<br />';
-        $_aScanDirPaths		= ( array ) $asScanDirPaths;
-        if ( $aOptions[ 'output_buffer' ] ) {
-            echo 'Searching files under the directories: ' . implode( ', ', $_aScanDirPaths ) . $_sCarriageReturn;
+    }
+
+    /**
+     *
+     * @since   1.1.0
+     */
+    public function do() {
+        $this->_do();
+    }
+
+    /**
+     * @return array
+     */
+    public function getItems() {
+        return $this->_getItems( $this->aScanDirPaths, $this->sOutputFilePath );
+    }
+
+    /**
+     * @param $sBaseDirPath
+     * @param $asScanDirPaths
+     * @param $sOutputFilePath
+     * @param array $aOptions
+     * @since   1.1.0
+     * @return void
+     */
+    protected function _setProperties( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, array $aOptions ) {
+        $this->sBaseDirPath     = $sBaseDirPath;
+        $this->sOutputFilePath  = $sOutputFilePath;
+        $this->aOptions         = $this->_getOptionsFormatted( $aOptions );
+        $this->sCarriageReturn	= php_sapi_name() == 'cli' ? PHP_EOL : '<br />';
+        $this->aScanDirPaths    = ( array ) $asScanDirPaths;
+    }
+
+    /**
+     * @since   1.1.0
+     */
+    protected function _do() {
+
+        if ( $this->aOptions[ 'output_buffer' ] ) {
+            echo 'Searching files under the directories: ' . implode( ', ', $this->aScanDirPaths ) . $this->sCarriageReturn;
         }
 
         // 1. Store file contents into an array.
-        $_aFilePaths	= $this->_getFileLists( $_aScanDirPaths, $aOptions['search'] );
-        $_aFiles		= $this->_formatFileArray( $_aFilePaths );
-        unset( $_aFiles[ pathinfo( $sOutputFilePath, PATHINFO_FILENAME ) ] );	// it's possible that the minified file also gets loaded but we don't want it.
-        if ( $aOptions[ 'output_buffer' ] ) {
-            echo sprintf( 'Found %1$s file(s)', count( $_aFiles ) ) . $_sCarriageReturn;
-        }
+        $this->aItems = $this->getItems();
 
         // 2. Generate the output script header comment
-        $_sHeaderComment = $this->_getHeaderComment( $_aFiles, $aOptions );
-        if ( $aOptions[ 'output_buffer' ] ) {
-            echo( $_sHeaderComment ) . $_sCarriageReturn;
+        $_sHeaderComment = $this->_getHeaderComment( $this->aItems, $this->aOptions );
+        if ( $this->aOptions[ 'output_buffer' ] ) {
+            echo( $_sHeaderComment ) . $this->sCarriageReturn;
         }
 
-        // 3. Sort the classes - in some PHP versions, parent classes must be defined before extended classes.
-        $_aFiles = $this->___sort( $_aFiles, $aOptions[ 'exclude_classes' ] );
-        if ( $aOptions[ 'output_buffer' ] ) {
-            echo sprintf( 'Sorted %1$s file(s)', count( $_aFiles ) ) . $_sCarriageReturn;
-        }
+        $this->_sort( $this->aItems );
 
-        // 4. Write to a file
+        $this->_write( $this->aItems, $this->sBaseDirPath, $this->sOutputFilePath, $_sHeaderComment );
+
+    }
+    
+    /**
+     * @param array $aOptions
+     * @return array
+     * @since   1.1.0
+     */
+    protected function _getOptionsFormatted( array $aOptions ) {
+        $aOptions			    = $aOptions + self::$_aStructure_Options;
+        $aOptions[ 'search' ]	= $aOptions[ 'search' ] + self::$_aStructure_Options[ 'search' ];
+        return $aOptions;
+    }
+
+    /**
+     * @param $aScanDirPaths
+     * @param $sOutputFilePath
+     * @return array
+     */
+    protected function _getItems( array $aScanDirPaths, $sOutputFilePath ) {
+        $_aFilePaths	= $this->_getFileLists( $aScanDirPaths, $this->aOptions[ 'search' ] );
+        $_aClasses		= $this->_getFileArrayFormatted( $_aFilePaths );
+        unset( $_aClasses[ pathinfo( $sOutputFilePath, PATHINFO_FILENAME ) ] );	// it's possible that the minified file also gets loaded but we don't want it.
+        if ( $this->aOptions[ 'output_buffer' ] ) {
+            echo sprintf(
+                'Found %1$s file(s) and %2$s item(s)',
+                count( $_aFilePaths ),
+                count( $_aClasses )
+            ) . $this->sCarriageReturn;
+        }
+        return $_aClasses;
+    }
+    
+    /**
+     * Sort the classes - in some PHP versions, parent classes must be defined before extended classes.
+     * @since   1.1.0
+     * @param array &$aItems
+     */
+    protected function _sort( array &$aItems ) {
+        $aItems = $this->___sort( $aItems, $this->aOptions[ 'exclude_classes' ] );
+        if ( $this->aOptions[ 'output_buffer' ] ) {
+            echo sprintf( 'Sorted %1$s item(s)', count( $aItems ) ) . $this->sCarriageReturn;
+        }        
+    }
+
+    /**
+     * Write to a file.
+     * @since   1.1.0
+     */
+    protected function _write( array $aItems, $sBaseDirPath, $sOutputFilePath, $sHeaderComment ) {
         $this->___write(
-            $_aFiles,
+            $aItems,
             $sBaseDirPath,
             $sOutputFilePath,
-            $_sHeaderComment,
-            $aOptions[ 'output_var_name' ],
-            $aOptions[ 'base_dir_var' ]
+            $sHeaderComment,
+            $this->aOptions[ 'output_var_name' ],
+            $this->aOptions[ 'base_dir_var' ]
         );
-
     }
 
-    private function ___sort( array $aFiles, array $aExcludingClassNames ) {
+    private function ___sort( array $aItems, array $aExcludingClassNames ) {
 
-        $aFiles = $this->___getDefinedObjectConstructsExtracted( $aFiles, $aExcludingClassNames );
-        foreach( $aFiles as $_sClassName => $_aFile ) {
+        $aItems = $this->___getDefinedObjectConstructsExtracted( $aItems, $aExcludingClassNames );
+        foreach( $aItems as $_sClassName => $_aFile ) {
             if ( in_array( $_sClassName, $aExcludingClassNames ) ) {
-                unset( $aFiles[ $_sClassName ] );
+                unset( $aItems[ $_sClassName ] );
             }
         }
-        return $aFiles;
+        return $aItems;
 
     }
-    private function ___getDefinedObjectConstructsExtracted( array $aFiles, array $aExcludingClassNames ) {
+        private function ___getDefinedObjectConstructsExtracted( array $aItems, array $aExcludingClassNames ) {
 
-        $_aAdditionalClasses = array();
-        foreach( $aFiles as $_sClassName => $_aFile ) {
-            $_aObjectConstructs = array_merge( $_aFile[ 'classes' ], $_aFile[ 'traits' ], $_aFile[ 'interfaces' ] );
-            foreach( $_aObjectConstructs as $_sAdditionalClass ) {
-                if ( in_array( $_sAdditionalClass, $aExcludingClassNames ) ) {
-                    continue;
+            $_aAdditionalClasses = array();
+            foreach( $aItems as $_sClassName => $_aItem ) {
+                $_aObjectConstructs = array_merge( $_aItem[ 'classes' ], $_aItem[ 'traits' ], $_aItem[ 'interfaces' ] );
+                foreach( $_aObjectConstructs as $_sAdditionalClass ) {
+                    if ( in_array( $_sAdditionalClass, $aExcludingClassNames ) ) {
+                        continue;
+                    }
+                    $_aAdditionalClasses[ $_sAdditionalClass ] = $_aItem;
                 }
-                $_aAdditionalClasses[ $_sAdditionalClass ] = $_aFile;
             }
-        }
-        return $_aAdditionalClasses;
+            return $_aAdditionalClasses;
 
-    }
+        }
 
     private function ___write( array $aFiles, $sBaseDirPath, $sOutputFilePath, $sHeadingComment, $sOutputArrayVar, $sBaseDirVar ) {
 

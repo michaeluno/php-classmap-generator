@@ -59,27 +59,7 @@ class PHPClassMapGenerator_Base {
         }
         return array_unique( $_aFiles );
     }
-    
-        /**
-         * Returns an array containing file paths.
-         * 
-         * @deprecated The directory iterator cannot filter out certain directories in some PHP versions.
-         */
-        private function ___getFileList( $sDirPath, $sFilePathRegexNeedle ) {
-            
-            $sDirPath = rtrim( $sDirPath, '\\/' );
-            $_aFileList = array();
-            if ( ! is_dir( $sDirPath ) ) {
-                return $_aFileList;
-            }
-            $_oDir              = new \RecursiveDirectoryIterator( $sDirPath );
-            $_oIterator         = new \RecursiveIteratorIterator( $_oDir );
-            $_oRegexIterator    = new \RegexIterator( $_oIterator, $sFilePathRegexNeedle, \RegexIterator::GET_MATCH );
-            foreach( $_oRegexIterator as $_aFile ) {
-                $_aFileList = array_merge( $_aFileList, $_aFile );
-            }
-            return $_aFileList;
-        }    
+
         /**
          * Returns an array of scanned file paths.
          * 
@@ -94,7 +74,7 @@ class PHPClassMapGenerator_Base {
         protected function _getFileList( $sDirPath, array $aSearchOptions ) {
             
             $sDirPath            = rtrim( $sDirPath, '\\/' ) . DIRECTORY_SEPARATOR;    // ensures the trailing (back/)slash exists.         
-            $_aExcludingDirPaths = $this->_formatPaths( $aSearchOptions['exclude_dir_paths'] );
+            $_aExcludingDirPaths = $this->_formatPaths( $aSearchOptions[ 'exclude_dir_paths' ] );
             
             if ( defined( 'GLOB_BRACE' ) ) {    // in some OSes this flag constant is not available.
                 $_sFileExtensionPattern = $this->___getGlobPatternExtensionPart( $aSearchOptions['allowed_extensions'] );
@@ -103,8 +83,8 @@ class PHPClassMapGenerator_Base {
                         $sDirPath . '*.' . $_sFileExtensionPattern, 
                         GLOB_BRACE, 
                         $_aExcludingDirPaths, 
-                        ( array ) $aSearchOptions['exclude_dir_names'],
-                        $aSearchOptions['exclude_file_names']
+                        ( array ) $aSearchOptions[ 'exclude_dir_names' ],
+                        $aSearchOptions[ 'exclude_file_names' ]
                     )
                     : ( array ) glob( $sDirPath . '*.' . $_sFileExtensionPattern, GLOB_BRACE );
                 return array_filter( $_aFilePaths );    // drop non-value elements.    
@@ -213,7 +193,7 @@ class PHPClassMapGenerator_Base {
     /**
      * Sets up the array consisting of class paths with the key of file name w/o extension.
      */
-    protected function _formatFileArray( array $_aFilePaths ) {
+    protected function _getFileArrayFormatted( array $_aFilePaths ) {
                     
         /*
          * Now the structure of $_aFilePaths looks like:
@@ -226,23 +206,30 @@ class PHPClassMapGenerator_Base {
          */         
         $_aFiles = array();
         foreach( $_aFilePaths as $_sFilePath ) {
-            
-            $_sClassName    = pathinfo( $_sFilePath, PATHINFO_FILENAME );
+
             $_sPHPCode      = $this->_getPHPCode( $_sFilePath );
-            $_aFiles[ $_sClassName ] = array(    // the file name without extension will be assigned to the key
-                'path'              => $_sFilePath,    
+            $_aFileInfo     = array(    // the file name without extension will be assigned to the key
+                'path'              => $_sFilePath,
                 'code'              => $_sPHPCode ? trim( $_sPHPCode ) : '',
                 'dependency'        => $this->_getParentClass( $_sPHPCode ),
             ) + $this->_getDefinedObjectConstructs( '<?php ' . $_sPHPCode );
+//            $_sClassName    = rtrim( $_aFileInfo[ 'namespace' ], '\\' ) . '\\' . pathinfo( $_sFilePath, PATHINFO_FILENAME );
+
+            // the file name without extension will be assigned to the key
+            foreach( array_merge( $_aFileInfo[ 'classes' ], $_aFileInfo[ 'interfaces' ], $_aFileInfo[ 'traits' ] ) as $_sClassName ) {
+                $_aFiles[ $_sClassName ] = $_aFileInfo;
+            }
 
         }
         return $_aFiles;
-            
+
     }
         /**
          * Retrieves PHP code from the given path.
-         * 
+         *
+         * @param       string  $sFilePath
          * @remark      Enclosing `<?php ?>` tags will be removed.
+         * @return      string
          */
         protected function _getPHPCode( $sFilePath ) {
             $_sCode = php_strip_whitespace( $sFilePath );
@@ -250,12 +237,12 @@ class PHPClassMapGenerator_Base {
             $_sCode = preg_replace( '/\?>\s+?$/', '', $_sCode );
             return $_sCode;
         }
-                    
+
 
         /**
          * Retrieves defined PHP class names using the `token_get_all` function.
-         * 
-         * @remark      The passed code must start with the `<?php ` opening tag.
+         *
+         * @param string $sPHPCode PHP code with the `<?php ` opening tag.
          * @return      array
          */
         protected function _getDefinedObjectConstructs( $sPHPCode ) {
@@ -281,27 +268,27 @@ class PHPClassMapGenerator_Base {
                 $_sClassName = $this->___getObjectConstructNameExtractedFromToken( $_aTokens, $i, T_CLASS );
                 if ( $_sClassName ) {
                     $_aConstructs[ 'classes' ][] = $_sCurrentNameSpace . $_sClassName;
-                    if ( ! $_sCurrentNameSpace ) {
-                        $_aConstructs[ 'classes' ][] = '\\' . $_sClassName; // global namespace; no heading backslash version is added also for backward-compatibility with PHP v5.2.x.
-                    }
+//                    if ( ! $_sCurrentNameSpace ) {
+//                        $_aConstructs[ 'classes' ][] = '\\' . $_sClassName; // global namespace; no heading backslash version is added also for backward-compatibility with PHP v5.2.x.
+//                    }
                 }
 
                 // Interface
                 $_sInterface = $this->___getObjectConstructNameExtractedFromToken( $_aTokens, $i, T_INTERFACE );
                 if ( $_sInterface ) {
                     $_aConstructs[ 'interfaces' ][] = $_sCurrentNameSpace . $_sInterface;
-                    if ( ! $_sCurrentNameSpace ) {
-                        $_aConstructs[ 'interfaces' ][] = '\\' . $_sInterface;
-                    }
+//                    if ( ! $_sCurrentNameSpace ) {
+//                        $_aConstructs[ 'interfaces' ][] = '\\' . $_sInterface;
+//                    }
                 }
 
                 // Trait
                 $_sInterface = $this->___getObjectConstructNameExtractedFromToken( $_aTokens, $i, T_TRAIT );
                 if ( $_sInterface ) {
                     $_aConstructs[ 'traits' ][] = $_sCurrentNameSpace . $_sInterface;
-                    if ( ! $_sCurrentNameSpace ) {
-                        $_aConstructs[ 'traits' ][] = '\\' . $_sInterface;
-                    }
+//                    if ( ! $_sCurrentNameSpace ) {
+//                        $_aConstructs[ 'traits' ][] = '\\' . $_sInterface;
+//                    }
                 }
             }
             return $_aConstructs;
@@ -336,6 +323,8 @@ class PHPClassMapGenerator_Base {
 
         /**
          * Returns the parent class
+         * @param string $sPHPCode
+         * @return string
          */
         protected function _getParentClass( $sPHPCode ) {
             if ( ! preg_match( '/class\s+(.+?)\s+extends\s+(.+?)\s+{/i', $sPHPCode, $aMatch ) ) {
@@ -349,19 +338,19 @@ class PHPClassMapGenerator_Base {
      */
     protected function _getHeaderComment( $aFiles, $aOptions )     {
 
-        if ( $aOptions['header_class_path'] && $aOptions['header_class_name'] ) {
+        if ( $aOptions[ 'header_class_path' ] && $aOptions[ 'header_class_name' ] ) {
             return $this->___getHeaderComment( 
-                $aOptions['header_class_path'],
-                $aOptions['header_class_name'],
-                $aOptions['header_type']
+                $aOptions[ 'header_class_path' ],
+                $aOptions[ 'header_class_name' ],
+                $aOptions[ 'header_type' ]
             );                
         }
         
-        if ( $aOptions['header_class_name'] ) {
+        if ( $aOptions[' header_class_name' ] ) {
             return $this->___getHeaderComment( 
-                isset( $aFiles[ $aOptions['header_class_name'] ] ) ? $aFiles[ $aOptions['header_class_name'] ][ 'path' ] : $aOptions['header_class_path'],
-                $aOptions['header_class_name'],
-                $aOptions['header_type']
+                isset( $aFiles[ $aOptions[ 'header_class_name' ] ] ) ? $aFiles[ $aOptions['header_class_name'] ][ 'path' ] : $aOptions[ 'header_class_path' ],
+                $aOptions[ 'header_class_name' ],
+                $aOptions[ 'header_type' ]
             );            
         } 
         
@@ -428,9 +417,11 @@ class PHPClassMapGenerator_Base {
                 . ( $_aConstants['LICENSE']    ? '; Licensed under ' . $_aConstants['LICENSE'] : '' );
             $_aOutputs[]    = ' */' . PHP_EOL;
             return implode( '', array_filter( $_aOutputs ) );
-        }    
+        }
+
         /**
          * Returns the docblock of the specified class
+         * @throws \ReflectionException
          */
         protected function _getClassDocBlock( $sClassName ) {
             $_oRC = new \ReflectionClass( $sClassName );
