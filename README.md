@@ -71,13 +71,15 @@ This parameter accepts an array holding options.
  - `output_buffer`		: (boolean)	whether output buffer should be printed.     
  - `exclude_classes` 	: (array)   an array holding class names to exclude.
  - `base_dir_var`		: (string)	the variable or constant name that is prefixed before the inclusion path.
- - `output_var_name`	: (string)  The variable string that the map array is assigned to. Default: `$aClassMap`. If `return` is set, the variable will not be set but the file just returns the generated map array. 
+ - `output_var_name`	: (string)  the variable string that the map array is assigned to. Default: `$aClassMap`. If `return` is set, the variable will not be set but the file just returns the generated map array. 
+ - `do_in_constructor`  : (boolean) whether to perform the action in the constructor. Default: `true`.  
  - `search`				: (array)	the arguments for the directory search options.
     - `allowed_extensions`: (array) allowed file extensions to be listed. 
     - `exclude_dir_paths`: (array) directory paths to exclude from the list. 
     - `exclude_dir_names`: (array) directory base names to exclude from the list. 
     - `exclude_file_names`: (array) file names (with extension) to exclude from the list. 
-    - `is_recursive`: (boolean) whether to scan sub-directories. 
+    - `is_recursive`: (boolean) whether to scan sub-directories.
+    - `ignore_note_file_names`: (array) ignore note file names that tell the parser to skip the directory. When one of the files exist in the parsing directory, the directory will be skipped. Default: `[ 'ignore-class-map.txt' ]`,   
 
 ##### Example    
 ```php

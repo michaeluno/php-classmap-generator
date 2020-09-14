@@ -33,11 +33,12 @@ class PHPClassMapGenerator_Base {
         
         // Search options
         'search'    =>    array(
-            'allowed_extensions'    => array( 'php' ),    // e.g. array( 'php', 'inc' )
-            'exclude_dir_paths'     => array(),
-            'exclude_dir_names'     => array(),         // the directory 'base' name
-            'exclude_file_names'    => array(), // 1.0.3+ includes an file extension.
-            'is_recursive'          => true,
+            'allowed_extensions'     => array( 'php' ),  // e.g. array( 'php', 'inc' )
+            'exclude_dir_paths'      => array(),
+            'exclude_dir_names'      => array(),         // the directory 'base' name
+            'exclude_file_names'     => array(),         // 1.0.3+ includes an file extension.
+            'is_recursive'           => true,
+            'ignore_note_file_names' => array( 'ignore-class-map.txt' ) // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
         ),        
 
         'carriage_return'   => PHP_EOL,
@@ -128,10 +129,33 @@ class PHPClassMapGenerator_Base {
                 protected function _getPathFormatted( $sPath ) {
                     return rtrim( str_replace( '\\', '/', $sPath ), '/' );
                 }
+
+
+            /**
+             * Checks whether a file exists.
+             *
+             * @remark  Checks all the paths given as array members and at least one of them exists, the method returns true.
+             * @param array $aFilePaths
+             * @param string $sSuffix The path suffix to prepend to the path set in the array.
+             * @return bool
+             */
+            private function ___fileExists( array $aFilePaths, $sSuffix='' ) {
+                foreach( $aFilePaths as $_sFilePath ) {
+                    if ( file_exists( $sSuffix . $_sFilePath ) ) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             /**
              * The recursive version of the glob() function.
              */
             private function ___doRecursiveGlob( $sPathPatten, $nFlags=0, array $aExcludeDirPaths=array(), array $aExcludeDirNames=array(), array $aExcludeFileNames=array() ) {
+
+                if ( $this->___fileExists( $aIgnoreNotes, dirname( $sPathPatten ) . '/' ) ) {
+                    return array();
+                }
 
                 $_aFiles    = glob( $sPathPatten, $nFlags );    
                 $_aFiles    = is_array( $_aFiles ) ? $_aFiles : array();    // glob() can return false.

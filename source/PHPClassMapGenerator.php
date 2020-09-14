@@ -61,7 +61,9 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
             'allowed_extensions'	=>	array( 'php' ),	// e.g. array( 'php', 'inc' )
             'exclude_dir_paths'		=>	array(),
             'exclude_dir_names'		=>	array(),
+            'exclude_file_names'     => array(),         // 1.0.3+ includes an file extension.
             'is_recursive'			=>	true,
+            'ignore_note_file_names' => array( 'ignore-class-map.txt' ) // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
         ),
 
     );
@@ -178,8 +180,8 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
      * @since   1.1.0
      */
     protected function _getOptionsFormatted( array $aOptions ) {
-        $aOptions			    = $aOptions + self::$_aStructure_Options;
-        $aOptions[ 'search' ]	= $aOptions[ 'search' ] + self::$_aStructure_Options[ 'search' ];
+        $aOptions			    = $aOptions + self::$_aStructure_Options + parent::$_aStructure_Options;
+        $aOptions[ 'search' ]	= $aOptions[ 'search' ] + self::$_aStructure_Options[ 'search' ] + parent::$_aStructure_Options[ 'search' ];
         return $aOptions;
     }
 
