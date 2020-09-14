@@ -4,6 +4,7 @@
 - Added the `structure` argument.
 - Added the `ignore_note_file_names` search argument.
 - Added the `do_in_constructor` argument.
+- Added some public methods.
 - Supported no namespace classes.
 
 ## 1.0.1 - 2020/01/20

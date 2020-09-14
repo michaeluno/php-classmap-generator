@@ -82,7 +82,9 @@ This parameter accepts an array holding options.
     - `is_recursive`: (boolean) whether to scan sub-directories.
     - `ignore_note_file_names`: (array) ignore note file names that tell the parser to skip the directory. When one of the files exist in the parsing directory, the directory will be skipped. Default: `[ 'ignore-class-map.txt' ]`,   
 
-##### Example    
+##### Example
+
+##### Generating a class map in the script directory.     
 ```php
 new \PHPClassMapGenerator\PHPClassMapGenerator(
     dirname( __DIR__ ),
@@ -103,6 +105,40 @@ new \PHPClassMapGenerator\PHPClassMapGenerator(
     ]
 );
 ``` 
+
+##### Do not write to a file
+```php
+$_oGenerator = new \PHPClassMapGenerator\PHPClassMapGenerator(
+    __DIR__, // base dir
+    __DIR__ . '/_scandir', // scan dir name
+    __DIR__ . '/class-map.php',
+    [
+        'do_in_constructor'     => false,
+    ]
+);
+print_r( $_oGenerator->get() );
+``` 
+
+#### Find CSS files
+```php
+$_oGenerator = new \PHPClassMapGenerator\PHPClassMapGenerator(
+    __DIR__, // base dir
+    __DIR__ . '/_scandir', // scan dir name
+    __DIR__ . '/class-map.php',
+    [
+        'output_var_name'		=> 'return',
+        'do_in_constructor'     => false,
+        'structure'             => 'PATH',
+        'search'                => [
+            'allowed_extensions'     => [ 'css' ],
+            'ignore_note_file_names' => [ 'ignore-css-map.txt' ],
+        ],
+    ]
+);
+
+print_r( $_oGenerator->get() );
+```
+To find JavaScript files, change the `'css'` part to `'js'` in the `allowed_extensions` search argument.
  
  ## License
  Licensed under [MIT](./LICENSE).

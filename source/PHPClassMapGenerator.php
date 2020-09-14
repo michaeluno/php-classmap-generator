@@ -29,6 +29,8 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
     public $sOutputFilePath = '';
 
+    public $sHeaderComment = '';
+
     public $aItems = array();
 
         /**
@@ -117,7 +119,8 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         if ( ! $this->aOptions[ 'do_in_constructor' ] ) {
             return;
         }
-        $this->do();
+
+        $this->write();
 
     }
 
@@ -125,8 +128,48 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
      *
      * @since   1.1.0
      */
-    public function do() {
-        $this->_do();
+    public function write() {
+        $this->___write( $this->sOutputFilePath );
+    }
+
+    /**
+     * @since  1.1.0
+     * @return string
+     */
+    public function getMap() {
+
+        $_aData		      = array(
+            // Heading
+            mb_convert_encoding( '<?php ' . PHP_EOL . $this->sHeaderComment, 'UTF-8', 'auto' ),
+
+            // Start array declaration
+            'return' === $this->aOptions[ 'output_var_name' ]
+                ? 'return array( ' . PHP_EOL
+                : $this->aOptions[ 'output_var_name' ] . ' = array( ' . PHP_EOL,
+        );
+
+        // Insert the data
+        foreach( $this->get() as $_sClassName => $_sPath ) {
+            $_aData[] = "    " . '"' . $_sClassName . '"' . ' => '
+                . $_sPath . ', ' . PHP_EOL;
+        }
+
+        // Close the array declaration
+        $_aData[]	= ');';
+
+        return trim( implode( '', $_aData ) );
+
+    }
+
+    /**
+     * @return array
+     * @since  1.1.0
+     */
+    public function get() {
+        if ( 'CLASS' !== $this->aOptions[ 'structure' ]  ) {
+            return $this->aItems;
+        }
+        return array_map( array( $this, '_getItemConvertedToPath' ), $this->aItems );
     }
 
     /**
@@ -150,12 +193,13 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         $this->aOptions         = $this->_getOptionsFormatted( $aOptions );
         $this->sCarriageReturn	= php_sapi_name() == 'cli' ? PHP_EOL : '<br />';
         $this->aScanDirPaths    = ( array ) $asScanDirPaths;
+        $this->_setItems();
     }
 
     /**
      * @since   1.1.0
      */
-    protected function _do() {
+    protected function _setItems() {
 
         if ( $this->aOptions[ 'output_buffer' ] ) {
             echo 'Searching files under the directories: ' . implode( ', ', $this->aScanDirPaths ) . $this->sCarriageReturn;
@@ -165,16 +209,17 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         $this->aItems = $this->getItems();
 
         // 2. Generate the output script header comment
-        $_sHeaderComment = $this->_getHeaderComment( $this->aItems, $this->aOptions );
-        if ( $this->aOptions[ 'output_buffer' ] ) {
-            echo( $_sHeaderComment ) . $this->sCarriageReturn;
-        }
+        $this->___setHeaderComment();
 
         $this->_sort( $this->aItems );
 
-        $this->_write( $this->aItems, $this->sBaseDirPath, $this->sOutputFilePath, $_sHeaderComment );
-
     }
+        private function ___setHeaderComment() {
+            $this->sHeaderComment = $this->_getHeaderComment( $this->aItems, $this->aOptions );
+            if ( $this->aOptions[ 'output_buffer' ] ) {
+                echo( $this->sHeaderComment ) . $this->sCarriageReturn;
+            }
+        }
     
     /**
      * @param array $aOptions
@@ -224,22 +269,11 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         }        
     }
 
-    /**
-     * Write to a file.
-     * @since   1.1.0
-     */
-    protected function _write( array $aItems, $sBaseDirPath, $sOutputFilePath, $sHeaderComment ) {
-        $this->___write(
-            $aItems,
-            $sBaseDirPath,
-            $sOutputFilePath,
-            $sHeaderComment,
-            $this->aOptions[ 'output_var_name' ],
-            $this->aOptions[ 'base_dir_var' ]
-        );
-    }
-
     private function ___sort( array $aItems, array $aExcludingClassNames ) {
+
+        if ( 'CLASS' !== $this->aOptions[ 'structure' ] ) {
+            return $aItems;
+        }
 
         $aItems = $this->___getDefinedObjectConstructsExtracted( $aItems, $aExcludingClassNames );
         foreach( $aItems as $_sClassName => $_aFile ) {
@@ -266,29 +300,7 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
         }
 
-    private function ___write( array $aFiles, $sBaseDirPath, $sOutputFilePath, $sHeadingComment, $sOutputArrayVar, $sBaseDirVar ) {
-
-        $_aData		 = array();
-
-        // Create a heading.
-        $_aData[]	 = mb_convert_encoding( '<?php ' . PHP_EOL . $sHeadingComment, 'UTF-8', 'auto' );
-
-        // Start array declaration
-        $_aData[]	 = 'return' === $sOutputArrayVar
-            ? 'return array( ' . PHP_EOL
-            : $sOutputArrayVar . ' = array( ' . PHP_EOL;
-
-        // Insert the data
-        $sBaseDirVar = $sBaseDirVar ? $sBaseDirVar : '""';
-        foreach( $aFiles as $_sClassName => $_aFile ) {
-            $_sPath		= str_replace( '\\', '/', $_aFile[ 'path' ] );
-            $_sPath		= $this->___getRelativePath( $sBaseDirPath, $_sPath );
-            $_aData[]	= "    " . '"' . $_sClassName . '"' . ' => '
-                           . $sBaseDirVar . ' . "' . $_sPath . '", ' . PHP_EOL;
-        }
-
-        // Close the array declaration
-        $_aData[]	= ');' . PHP_EOL;
+    private function ___write( $sOutputFilePath ) {
 
         // Remove the existing file.
         if ( file_exists( $sOutputFilePath ) ) {
@@ -296,12 +308,15 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         }
 
         // Write to a file.
-        file_put_contents(
-            $sOutputFilePath,
-            trim( implode( '', $_aData ) ) . PHP_EOL,
-            FILE_APPEND | LOCK_EX
-        );
+        file_put_contents( $sOutputFilePath, $this->getMap() . PHP_EOL, FILE_APPEND | LOCK_EX );
 
+    }
+
+    protected function _getItemConvertedToPath( $aItem ) {
+        $_sBaseDirVar = $this->aOptions[ 'base_dir_var' ];
+        $_sPath		  = str_replace( '\\', '/', $aItem[ 'path' ] );
+        $_sPath		  = $this->___getRelativePath( $this->sBaseDirPath, $_sPath );
+        return $_sBaseDirVar . ' . "' . $_sPath . '"';
     }
 
     /**

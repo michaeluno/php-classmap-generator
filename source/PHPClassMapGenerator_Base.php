@@ -276,10 +276,8 @@ class PHPClassMapGenerator_Base {
         protected function _getDefinedObjectConstructs( $sPHPCode ) {
 
             $_aConstructs       = array(
-                'classes'    => array(),
-                'interfaces' => array(),
-                'traits'     => array(),
-                'namespaces' => array(),
+                'classes'    => array(), 'interfaces' => array(),
+                'traits'     => array(), 'namespaces' => array(),
             );
             $_aTokens           = token_get_all( $sPHPCode );
             $_iCount            = count( $_aTokens );
@@ -364,7 +362,7 @@ class PHPClassMapGenerator_Base {
     /**
      * Generates the heading comment from the given path or class name.
      */
-    protected function _getHeaderComment( $aFiles, $aOptions )     {
+    protected function _getHeaderComment( array $aItems, array $aOptions )     {
 
         if ( $aOptions[ 'header_class_path' ] && $aOptions[ 'header_class_name' ] ) {
             return $this->___getHeaderComment( 
@@ -376,7 +374,7 @@ class PHPClassMapGenerator_Base {
         
         if ( $aOptions[' header_class_name' ] ) {
             return $this->___getHeaderComment( 
-                isset( $aFiles[ $aOptions[ 'header_class_name' ] ] ) ? $aFiles[ $aOptions['header_class_name'] ][ 'path' ] : $aOptions[ 'header_class_path' ],
+                isset( $aItems[ $aOptions[ 'header_class_name' ] ] ) ? $aItems[ $aOptions['header_class_name'] ][ 'path' ] : $aOptions[ 'header_class_path' ],
                 $aOptions[ 'header_class_name' ],
                 $aOptions[ 'header_type' ]
             );            

@@ -18,4 +18,4 @@ $_oGenerator = new PHPClassMapGenerator(
     ]
 );
 
-print_r( $_oGenerator->getItems() );
+print_r( $_oGenerator->get() );
