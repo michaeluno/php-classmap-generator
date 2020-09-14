@@ -72,7 +72,8 @@ This parameter accepts an array holding options.
  - `exclude_classes` 	: (array)   an array holding class names to exclude.
  - `base_dir_var`		: (string)	the variable or constant name that is prefixed before the inclusion path.
  - `output_var_name`	: (string)  the variable string that the map array is assigned to. Default: `$aClassMap`. If `return` is set, the variable will not be set but the file just returns the generated map array. 
- - `do_in_constructor`  : (boolean) whether to perform the action in the constructor. Default: `true`.  
+ - `do_in_constructor`  : (boolean) whether to perform the action in the constructor. Default: `true`.
+ - `structure`          : (string) either `CLASS` or `PATH`. When `CLASS` is set, the generated array keys consist of class names. When `PATH` is set, the generated array keys consist of paths. Default: `CLASS`.   
  - `search`				: (array)	the arguments for the directory search options.
     - `allowed_extensions`: (array) allowed file extensions to be listed. 
     - `exclude_dir_paths`: (array) directory paths to exclude from the list. 

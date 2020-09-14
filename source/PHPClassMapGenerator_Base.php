@@ -54,7 +54,7 @@ class PHPClassMapGenerator_Base {
             : array( $asDirPaths );
         foreach( $asDirPaths as $_sDirPath ) {
             $_aFiles = array_merge( 
-                $this->_getFileList( $_sDirPath, ( array ) $aSearchOptions + self::$_aStructure_Options['search'] ),
+                $this->_getFileList( $_sDirPath, ( array ) $aSearchOptions + self::$_aStructure_Options[ 'search' ] ),
                 $_aFiles 
             );
         }
@@ -73,12 +73,12 @@ class PHPClassMapGenerator_Base {
          * 
          */
         protected function _getFileList( $sDirPath, array $aSearchOptions ) {
-            
+
             $sDirPath            = rtrim( $sDirPath, '\\/' ) . DIRECTORY_SEPARATOR;    // ensures the trailing (back/)slash exists.         
             $_aExcludingDirPaths = $this->_formatPaths( $aSearchOptions[ 'exclude_dir_paths' ] );
             
             if ( defined( 'GLOB_BRACE' ) ) {    // in some OSes this flag constant is not available.
-                $_sFileExtensionPattern = $this->___getGlobPatternExtensionPart( $aSearchOptions['allowed_extensions'] );
+                $_sFileExtensionPattern = $this->___getGlobPatternExtensionPart( $aSearchOptions[ 'allowed_extensions' ] );
                 $_aFilePaths = $aSearchOptions[ 'is_recursive' ]
                     ? $this->___doRecursiveGlob( 
                         $sDirPath . '*.' . $_sFileExtensionPattern, 
@@ -94,14 +94,14 @@ class PHPClassMapGenerator_Base {
                 
             // For the Solaris operation system.
             $_aFilePaths = array();
-            foreach( $aSearchOptions['allowed_extensions'] as $__sAllowedExtension ) {
+            foreach( $aSearchOptions[ 'allowed_extensions' ] as $__sAllowedExtension ) {
                 $__aFilePaths = $aSearchOptions[ 'is_recursive' ]
                     ? $this->___doRecursiveGlob( 
                         $sDirPath . '*.' . $__sAllowedExtension, 
                         0, 
                         $_aExcludingDirPaths, 
-                        ( array ) $aSearchOptions['exclude_dir_names'],
-                        $aSearchOptions['exclude_file_names'],
+                        ( array ) $aSearchOptions[ 'exclude_dir_names' ],
+                        $aSearchOptions[ 'exclude_file_names' ],
                         $aSearchOptions[ 'ignore_note_file_names' ]
                     )
                     : ( array ) glob( $sDirPath . '*.' . $__sAllowedExtension );
@@ -159,7 +159,8 @@ class PHPClassMapGenerator_Base {
                     return array();
                 }
 
-                $_aFiles    = glob( $sPathPatten, $nFlags );    
+                $_aFiles    = glob( $sPathPatten, $nFlags );
+                $_aFiles    = array_map( array( $this, '_getPathFormatted' ), $_aFiles );
                 $_aFiles    = is_array( $_aFiles ) ? $_aFiles : array();    // glob() can return false.
                 $_aFiles    = $this->___dropExcludingFiles( $_aFiles, $aExcludeFileNames );
                 $_aDirs     = glob( 

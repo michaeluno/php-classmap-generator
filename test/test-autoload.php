@@ -14,7 +14,6 @@ class Autoload {
     static public function set( array $aClasses ) {
         self::$aAutoLoadClasses = $aClasses + self::$aAutoLoadClasses;
         $_sFunc = function ( $sCalledUnknownClassName ) {
-var_dump( 'autoload: ' . $sCalledUnknownClassName );
             if ( ! isset( self::$aAutoLoadClasses[ $sCalledUnknownClassName ] ) ) {
                 return;
             }

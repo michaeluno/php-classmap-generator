@@ -54,6 +54,7 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         ),
         'base_dir_var'			=> 'CLASS_MAP_BASE_DIR_VAR',
         'output_var_name'		=> '$aClassMap',
+        'structure'             => 'CLASS',     // 1.1.0 Accepted values: `CLASS`, `PATH` For `CLASS`, the generated array keys consist of class names. For `PATH` array keys will consist of file paths.
         'do_in_constructor'     => true,        // 1.1.0 Whether to perform the task in the constructor
 
         // Search options
@@ -69,10 +70,7 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
     );
 
     /**
-     * @param		string			$sBaseDirPath			The base directory path that the inclusion path is relative to.
-     * @param		string|array	$asScanDirPaths			The target directory path(s).
-     * @param		string			$sOutputFilePath		The destination file path.
-     * @param		array			$aOptions				The options array. It takes the following arguments.
+     *
      *  - 'header_class_name'	: string	the class name that provides the information for the heading comment of the result output of the minified script.
      *  - 'header_class_path'	: string	(optional) the path to the header class file.
      *  - 'output_buffer'		: boolean	whether or not output buffer should be printed.
@@ -105,6 +103,10 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
      *     const CONTRIBUTORS   = '';
      * }
      * ```
+     * @param		string			$sBaseDirPath			The base directory path that the inclusion path is relative to.
+     * @param		string|array	$asScanDirPaths			The target directory path(s).
+     * @param		string			$sOutputFilePath		The destination file path.
+     * @param		array			$aOptions				The options array. It takes the following arguments.
      */
     public function __construct( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, array $aOptions=array() ) {
 
@@ -192,6 +194,12 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
      */
     protected function _getItems( array $aScanDirPaths, $sOutputFilePath ) {
         $_aFilePaths	= $this->_getFileLists( $aScanDirPaths, $this->aOptions[ 'search' ] );
+        if ( 'PATH' === $this->aOptions[ 'structure' ] ) {
+            if ( $this->aOptions[ 'output_buffer' ] ) {
+                echo sprintf( 'Found %1$s file(s)', count( $_aFilePaths ) ) . $this->sCarriageReturn;
+            }
+            return $_aFilePaths;
+        }
         $_aClasses		= $this->_getFileArrayFormatted( $_aFilePaths );
         unset( $_aClasses[ pathinfo( $sOutputFilePath, PATHINFO_FILENAME ) ] );	// it's possible that the minified file also gets loaded but we don't want it.
         if ( $this->aOptions[ 'output_buffer' ] ) {
