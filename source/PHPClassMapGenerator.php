@@ -61,7 +61,8 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
         // Search options
         'search'	=>	array(
-            'allowed_extensions'	=>	array( 'php' ),	// e.g. array( 'php', 'inc' )
+            'allowed_extensions'	=>	array( 'php' ),	 // e.g. array( 'php', 'inc' )
+            'exclude_substrings'	=>	array(),	     // e.g. array( '.min.js', '-dont-' )
             'exclude_dir_paths'		=>	array(),
             'exclude_dir_names'		=>	array(),
             'exclude_file_names'     => array(),         // 1.0.3+ includes an file extension.

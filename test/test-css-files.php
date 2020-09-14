@@ -15,6 +15,7 @@ $_oGenerator = new PHPClassMapGenerator(
         'search'                => [
             'allowed_extensions'     => [ 'css' ],
             'ignore_note_file_names' => [ 'ignore-css-map.txt' ],
+            'exclude_file_names'     => [ '.min.' ],
         ],
     ]
 );

@@ -75,10 +75,11 @@ This parameter accepts an array holding options.
  - `do_in_constructor`  : (boolean) whether to perform the action in the constructor. Default: `true`.
  - `structure`          : (string) either `CLASS` or `PATH`. When `CLASS` is set, the generated array keys consist of class names. When `PATH` is set, the generated array keys consist of paths. Default: `CLASS`.   
  - `search`				: (array)	the arguments for the directory search options.
-    - `allowed_extensions`: (array) allowed file extensions to be listed. 
-    - `exclude_dir_paths`: (array) directory paths to exclude from the list. 
-    - `exclude_dir_names`: (array) directory base names to exclude from the list. 
-    - `exclude_file_names`: (array) file names (with extension) to exclude from the list. 
+    - `allowed_extensions`: (array) allowed file extensions to be listed. e.g. `[ 'php', 'inc' ]` 
+    - `exclude_dir_paths`: (array) directory paths to exclude from the list.  
+    - `exclude_dir_names`: (array) directory base names to exclude from the list. e.g. `[ 'temp', '_bak', '_del', 'lib', 'vendor', ]` 
+    - `exclude_file_names`: (array) a sub-string of file names to exclude from the list. e.g. `[ '.min' ]` 
+    - `exclude_substrings`: (array) sub-strings of paths to exclude from the list. e.g. `[ '.min', '_del', 'temp', 'library', 'vendor' ]`
     - `is_recursive`: (boolean) whether to scan sub-directories.
     - `ignore_note_file_names`: (array) ignore note file names that tell the parser to skip the directory. When one of the files exist in the parsing directory, the directory will be skipped. Default: `[ 'ignore-class-map.txt' ]`,   
 
@@ -132,6 +133,7 @@ $_oGenerator = new \PHPClassMapGenerator\PHPClassMapGenerator(
         'search'                => [
             'allowed_extensions'     => [ 'css' ],
             'ignore_note_file_names' => [ 'ignore-css-map.txt' ],
+            'exclude_file_names'     => [ '.min.' ],
         ],
     ]
 );

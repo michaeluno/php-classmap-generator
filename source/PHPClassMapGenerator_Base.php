@@ -34,12 +34,13 @@ class PHPClassMapGenerator_Base {
         // Search options
         'search'    =>    array(
             'allowed_extensions'     => array( 'php' ),  // e.g. array( 'php', 'inc' )
+            'exclude_substrings'     => array(),         // 1.1.0
             'exclude_dir_paths'      => array(),
             'exclude_dir_names'      => array(),         // the directory 'base' name
             'exclude_file_names'     => array(),         // 1.0.3+ includes an file extension.
             'is_recursive'           => true,
-            'ignore_note_file_names' => array( 'ignore-class-map.txt' ) // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
-        ),        
+            'ignore_note_file_names' => array( 'ignore-class-map.txt' ), // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
+        ),
 
         'carriage_return'   => PHP_EOL,
     );
@@ -85,8 +86,9 @@ class PHPClassMapGenerator_Base {
                         GLOB_BRACE, 
                         $_aExcludingDirPaths, 
                         ( array ) $aSearchOptions[ 'exclude_dir_names' ],
-                        $aSearchOptions[ 'exclude_file_names' ],
-                        $aSearchOptions[ 'ignore_note_file_names' ]
+                        ( array ) $aSearchOptions[ 'exclude_file_names' ],
+                        ( array ) $aSearchOptions[ 'ignore_note_file_names' ],
+                        ( array ) $aSearchOptions[ 'exclude_substrings' ]
                     )
                     : ( array ) glob( $sDirPath . '*.' . $_sFileExtensionPattern, GLOB_BRACE );
                 return array_filter( $_aFilePaths );    // drop non-value elements.    
@@ -101,8 +103,9 @@ class PHPClassMapGenerator_Base {
                         0, 
                         $_aExcludingDirPaths, 
                         ( array ) $aSearchOptions[ 'exclude_dir_names' ],
-                        $aSearchOptions[ 'exclude_file_names' ],
-                        $aSearchOptions[ 'ignore_note_file_names' ]
+                        ( array ) $aSearchOptions[ 'exclude_file_names' ],
+                        ( array ) $aSearchOptions[ 'ignore_note_file_names' ],
+                        ( array ) $aSearchOptions[ 'exclude_substrings' ]
                     )
                     : ( array ) glob( $sDirPath . '*.' . $__sAllowedExtension );
                 $_aFilePaths = array_merge( $__aFilePaths, $_aFilePaths );
@@ -127,6 +130,7 @@ class PHPClassMapGenerator_Base {
             }
                 /**
                  * @return      string
+                 * @param       string  $sPath
                  */
                 protected function _getPathFormatted( $sPath ) {
                     return rtrim( str_replace( '\\', '/', $sPath ), '/' );
@@ -153,20 +157,14 @@ class PHPClassMapGenerator_Base {
             /**
              * The recursive version of the glob() function.
              */
-            private function ___doRecursiveGlob( $sPathPatten, $nFlags=0, array $aExcludeDirPaths=array(), array $aExcludeDirNames=array(), array $aExcludeFileNames=array(), array $aIgnoreNotes=array() ) {
+            private function ___doRecursiveGlob( $sPathPatten, $nFlags=0, array $aExcludeDirPaths=array(), array $aExcludeDirNames=array(), array $aExcludeFileNames=array(), array $aIgnoreNotes=array(), array $aExcludedSubstrings=array() ) {
 
                 if ( $this->___fileExists( $aIgnoreNotes, dirname( $sPathPatten ) . '/' ) ) {
                     return array();
                 }
 
-                $_aFiles    = glob( $sPathPatten, $nFlags );
-                $_aFiles    = array_map( array( $this, '_getPathFormatted' ), $_aFiles );
-                $_aFiles    = is_array( $_aFiles ) ? $_aFiles : array();    // glob() can return false.
-                $_aFiles    = $this->___dropExcludingFiles( $_aFiles, $aExcludeFileNames );
-                $_aDirs     = glob( 
-                    dirname( $sPathPatten ) . DIRECTORY_SEPARATOR . '*', 
-                    GLOB_ONLYDIR|GLOB_NOSORT
-                );
+                $_aFiles    = $this->___getFilesByGlob( $sPathPatten, $nFlags, $aExcludeFileNames, $aExcludedSubstrings );
+                $_aDirs     = glob(dirname( $sPathPatten ) . DIRECTORY_SEPARATOR . '*',  GLOB_ONLYDIR|GLOB_NOSORT );
                 $_aDirs     = is_array( $_aDirs ) ? $_aDirs : array();
                 foreach ( $_aDirs as $_sDirPath ) {
                     $_sDirPath        = $this->_getPathFormatted( $_sDirPath );
@@ -184,31 +182,65 @@ class PHPClassMapGenerator_Base {
                             $aExcludeDirPaths,
                             $aExcludeDirNames,
                             $aExcludeFileNames,
-                            $aIgnoreNotes
+                            $aIgnoreNotes,
+                            $aExcludedSubstrings
                         )
                     );
                     
                 }
                 return $_aFiles;
                 
-            }        
+            }
                 /**
-                 * Removes files from the generated list that is set in the 'exclude_file_names' argument of the searh option array.
-                 * @since       1.0.6
-                 * @return      array
+                 * @param $sPathPatten
+                 * @param $nFlags
+                 * @param array $aExcludeFileNames
+                 * @param array $aExcludedSubstrings
+                 * @return array
                  */
-                private function ___dropExcludingFiles( array $aFiles, array $aExcludingFileNames=array() ) {
-                    if ( empty( $aExcludingFileNames ) ) {
+                private function ___getFilesByGlob( $sPathPatten, $nFlags, array $aExcludeFileNames, array $aExcludedSubstrings ) {
+                    $_aFiles    = glob( $sPathPatten, $nFlags );
+                    $_aFiles    = is_array( $_aFiles ) ? $_aFiles : array();    // glob() can return false.
+                    $_aFiles    = array_map( array( $this, '_getPathFormatted' ), $_aFiles );
+                    $_aFiles    = $this->___dropExcludingFiles( $_aFiles, $aExcludeFileNames, $aExcludedSubstrings );
+                    return $_aFiles;
+                }
+                    /**
+                     * Removes files from the generated list that is set in the 'exclude_file_names' argument of the searh option array.
+                     * @since       1.0.6
+                     * @return      array
+                     */
+                    private function ___dropExcludingFiles( array $aFiles, array $aExcludingFileNames=array(), array $aExcludedSubstrings=array() ) {
+                        if ( empty( $aExcludingFileNames ) && empty( $aExcludedSubstrings ) ) {
+                            return $aFiles;
+                        }
+                        foreach( $aFiles as $_iIndex => $_sPath ) {
+                            $_sBaseFileName        = basename( $_sPath );
+                            if ( $this->___hasSubstring( $_sBaseFileName, $aExcludingFileNames ) ) {
+                                unset( $aFiles[ $_iIndex ] );
+                                continue;
+                            }
+                            if ( $this->___hasSubstring( $_sPath, $aExcludedSubstrings ) ) {
+                                unset( $aFiles[ $_iIndex ] );
+                                continue;
+                            }
+                        }
                         return $aFiles;
                     }
-                    foreach( $aFiles as $_iIndex => $_sPath ) {
-                        $_sFileNameWOExtension = pathinfo( $_sPath, PATHINFO_FILENAME );
-                        if ( in_array( $_sFileNameWOExtension, $aExcludingFileNames ) ) {
-                            unset( $aFiles[ $_iIndex ] );
+                        /**
+                         *
+                         * @param $sString
+                         * @param array $aNeedles
+                         * @return boolean `true` if at lease one match is found. `false` if none of the needles match.
+                         */
+                        private function ___hasSubstring( $sString, array $aNeedles ) {
+                            foreach( $aNeedles as $_sNeedle ) {
+                                if ( false !== strpos( $sString, $_sNeedle ) ) {
+                                    return true;
+                                }
+                            }
+                            return false;
                         }
-                    }
-                    return $aFiles;
-                }
             /**
              * Constructs the file pattern of the file extension part used for the glob() function with the given file extensions.
              */

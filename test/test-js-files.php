@@ -14,6 +14,8 @@ $_oGenerator = new PHPClassMapGenerator(
         'structure'             => 'PATH',
         'search'                => [
             'allowed_extensions'     => [ 'js' ],
+            'exclude_file_names'     => [ '.min.' ],
+//            'exclude_substrings'     => [ '.min.' ],
         ],
     ]
 );
