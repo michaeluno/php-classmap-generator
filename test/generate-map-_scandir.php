@@ -1,7 +1,6 @@
 <?php
 
-include( dirname( __DIR__ ) . '/source/PHPClassMapGenerator.php' );
-
+include( dirname( __DIR__ ) . '/source/autoload.php' );
 
 new \PHPClassMapGenerator\PHPClassMapGenerator(
     __DIR__, // base dir

@@ -1,6 +1,6 @@
 <?php
 
-include( dirname( __DIR__ ) . '/source/PHPClassMapGenerator.php' );
+include( dirname( __DIR__ ) . '/source/autoload.php' );
 
 
 $_oGenerator = new \PHPClassMapGenerator\PHPClassMapGenerator(
