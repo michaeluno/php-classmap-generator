@@ -41,7 +41,7 @@ trait traitCodeParser {
         $fp = fopen( $sFilePath, 'r' );
 
         // Pull only the first 8 KB of the file in.
-        $_bsFileData = fread( $fp, 8 * KB_IN_BYTES );
+        $_bsFileData = fread( $fp, 8 * 1024 );
 
         // PHP will close file handle, but we are good citizens.
         fclose( $fp );
@@ -50,12 +50,12 @@ trait traitCodeParser {
         $_bsFileData = str_replace( "\r", "\n", $_bsFileData );
 
         $_aCommentItems = $aCommentItems;
-        foreach ( $_aCommentItems as $field => $regex ) {
-            if ( preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $_bsFileData, $match ) && $match[ 1 ] ) {
-                $_aCommentItems[ $field ] = $this->___getFileHeaderCommentCleaned( $match[ 1 ] );
-            } else {
-                $_aCommentItems[ $field ] = '';
+        foreach ( $_aCommentItems as $_sKey => $regex ) {
+            if ( preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':?(.*)$/mi', $_bsFileData, $match ) && $match[ 1 ] ) {
+                $_aCommentItems[ $_sKey ] = $this->___getFileHeaderCommentCleaned( $match[ 1 ] );
+                continue;
             }
+            $_aCommentItems[ $_sKey ] = '';
         }
         return $_aCommentItems;
 
