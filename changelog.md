@@ -8,6 +8,7 @@
 - Added some public methods.
 - Changed the `exclude_file_names` search option to be a substring of a base name instead of the whole base name without file extension. 
 - Supported no namespace classes.
+- Fixed a bug that class names starting with t could not properly load due to escape characters.
 
 ## 1.0.1 - 2020/01/20
 - Fixed a composer configuration error with a namespace.

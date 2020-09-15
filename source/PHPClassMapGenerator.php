@@ -9,9 +9,7 @@
 
 namespace PHPClassMapGenerator;
 
-if ( ! class_exists( 'PHPClassMapGenerator_Base' ) ) {
-    require_once( __DIR__ . '/PHPClassMapGenerator_Base.php' );
-}
+use PHPClassMapGenerator\Header\HeaderGenerator;
 
 /**
  * Creates a PHP file that defines an array holding file path with the class key.
@@ -21,7 +19,10 @@ if ( ! class_exists( 'PHPClassMapGenerator_Base' ) ) {
  * @remark		The parsed class file must have a name of the class defined in the file.
  * @version		1.1.0
  */
-class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
+class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
+
+    use Utility\traitCodeParser;
+    use Utility\traitPath;
 
     public $sBaseDirPath  = '';
 
@@ -33,44 +34,17 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
     public $aItems = array();
 
-        /**
-     * @var array 
+    /**
+     * @var array
      * @since   1.1.0
      */
     public $aOptions = array();
 
     /**
-     * @var string 
+     * @var string
      * @since 1.1.0
      */
     public $sCarriageReturn = PHP_EOL;
-    
-    static protected $_aStructure_Options = array(
-
-        'header_class_name'		=> '',
-        'header_class_path'		=> '',
-        'output_buffer'			=> true,
-        'header_type'			=> 'DOCBLOCK',
-        'exclude_classes'		=> array(
-            // 'Foo/Bar' // for name spaced classes, include the name space
-        ),
-        'base_dir_var'			=> 'CLASS_MAP_BASE_DIR_VAR',
-        'output_var_name'		=> '$aClassMap',
-        'structure'             => 'CLASS',     // 1.1.0 Accepted values: `CLASS`, `PATH` For `CLASS`, the generated array keys consist of class names. For `PATH` array keys will consist of file paths.
-        'do_in_constructor'     => true,        // 1.1.0 Whether to perform the task in the constructor
-
-        // Search options
-        'search'	=>	array(
-            'allowed_extensions'	=>	array( 'php' ),	 // e.g. array( 'php', 'inc' )
-            'exclude_substrings'	=>	array(),	     // e.g. array( '.min.js', '-dont-' )
-            'exclude_dir_paths'		=>	array(),
-            'exclude_dir_names'		=>	array(),
-            'exclude_file_names'     => array(),         // 1.0.3+ includes an file extension.
-            'is_recursive'			=>	true,
-            'ignore_note_file_names' => array( 'ignore-class-map.txt' ) // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
-        ),
-
-    );
 
     /**
      *
@@ -113,8 +87,11 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
      */
     public function __construct( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, array $aOptions=array() ) {
 
-        parent::__construct();
-        
+        if ( ! function_exists( 'token_get_all' ) ) {
+            echo 'The function token_get_all() is required.' . self::$_aStructure_Options[ 'carriage_return' ];
+            exit;
+        }
+
         $this->_setProperties( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, $aOptions );
 
         if ( ! $this->aOptions[ 'do_in_constructor' ] ) {
@@ -125,6 +102,35 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
 
     }
 
+    static protected $_aStructure_Options = array(
+
+        'header_class_name'		=> '',
+        'header_class_path'		=> '',
+        'header_type'			=> 'DOCBLOCK', // or 'CONSTANT
+
+        'output_buffer'			=> true,
+        'exclude_classes'		=> array(
+            // 'Foo/Bar' // for name spaced classes, include the name space
+        ),
+
+        'base_dir_var'			=> 'CLASS_MAP_BASE_DIR_VAR',
+        'output_var_name'		=> '$aClassMap',
+        'structure'             => 'CLASS',     // 1.1.0 Accepted values: `CLASS`, `PATH` For `CLASS`, the generated array keys consist of class names. For `PATH` array keys will consist of file paths.
+        'do_in_constructor'     => true,        // 1.1.0 Whether to perform the task in the constructor
+
+        // Search options
+        'search'	=>	array(
+            'allowed_extensions'	=>	array( 'php' ),	 // e.g. array( 'php', 'inc' )
+            'exclude_substrings'	=>	array(),	     // e.g. array( '.min.js', '-dont-' )
+            'exclude_dir_paths'		=>	array(),
+            'exclude_dir_names'		=>	array(),
+            'exclude_file_names'     => array(),         // 1.0.3+ includes an file extension.
+            'is_recursive'			=>	true,
+            'ignore_note_file_names' => array( 'ignore-class-map.txt' ) // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
+        ),
+
+    );
+
     /**
      *
      * @since   1.1.0
@@ -132,6 +138,12 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
     public function write() {
         $this->___write( $this->sOutputFilePath );
     }
+        private function ___write( $sOutputFilePath ) {
+            if ( file_exists( $sOutputFilePath ) ) {
+                unlink( $sOutputFilePath );
+            }
+            file_put_contents( $sOutputFilePath, $this->getMap() . PHP_EOL, FILE_APPEND | LOCK_EX );
+        }
 
     /**
      * @since  1.1.0
@@ -139,25 +151,18 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
      */
     public function getMap() {
 
-        $_aData		      = array(
-            // Heading
+        $_aData = array(
             mb_convert_encoding( '<?php ' . PHP_EOL . $this->sHeaderComment, 'UTF-8', 'auto' ),
-
-            // Start array declaration
             'return' === $this->aOptions[ 'output_var_name' ]
                 ? 'return array( ' . PHP_EOL
                 : $this->aOptions[ 'output_var_name' ] . ' = array( ' . PHP_EOL,
         );
-
-        // Insert the data
         foreach( $this->get() as $_sClassName => $_sPath ) {
-            $_aData[] = "    " . '"' . $_sClassName . '"' . ' => '
+            $_sClassName = str_replace( '\\', '\\\\', $_sClassName ); // escape backslashes as \t (tab character) will cause a problem
+            $_aData[]    = "    " . '"' . $_sClassName . '"' . ' => '
                 . $_sPath . ', ' . PHP_EOL;
         }
-
-        // Close the array declaration
-        $_aData[]	= ');';
-
+        $_aData[] = ');';
         return trim( implode( '', $_aData ) );
 
     }
@@ -172,6 +177,12 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
         }
         return array_map( array( $this, '_getItemConvertedToPath' ), $this->aItems );
     }
+        protected function _getItemConvertedToPath( $aItem ) {
+            $_sBaseDirVar = $this->aOptions[ 'base_dir_var' ];
+            $_sPath		  = str_replace( '\\', '/', $aItem[ 'path' ] );
+            $_sPath		  = $this->_getRelativePath( $this->sBaseDirPath, $_sPath );
+            return $_sBaseDirVar . ' . "' . $_sPath . '"';
+        }
 
     /**
      * @return array
@@ -179,6 +190,68 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
     public function getItems() {
         return $this->_getItems( $this->aScanDirPaths, $this->sOutputFilePath );
     }
+        /**
+         * @param $aScanDirPaths
+         * @param $sOutputFilePath
+         * @return array
+         */
+        protected function _getItems( array $aScanDirPaths, $sOutputFilePath ) {
+
+            $_oFileList     = new FileSystem\FileListGenerator( $aScanDirPaths, $this->aOptions[ 'search' ] );
+            $_aFilePaths    = $_oFileList->get();
+
+            // Exclude the output file.
+            $_biIndex       = array_search( $sOutputFilePath, $_aFilePaths, true );
+            if ( false !== $_biIndex ) {
+                unset( $_aFilePaths[ $_biIndex ] );
+            }
+
+            if ( 'PATH' === $this->aOptions[ 'structure' ] ) {
+                $this->output( sprintf( 'Found %1$s file(s)', count( $_aFilePaths ) ) );
+                return $_aFilePaths;
+            }
+
+            $_aClasses		= $this->___getFileArrayFormatted( $_aFilePaths );
+            $this->output( sprintf( 'Found %1$s file(s) and %2$s item(s)', count( $_aFilePaths ), count( $_aClasses ) ) );
+            return $_aClasses;
+        }
+            /**
+             * Sets up the array consisting of class paths with the key of file name w/o extension.
+             * @param array $aFilePaths
+             * @return array
+             */
+            private function ___getFileArrayFormatted( array $aFilePaths ) {
+
+                /**
+                 * Now the structure of $_aFilePaths looks like:
+                 *  array
+                 *     0 => string '.../class/MyClass.php'
+                 *     1 => string '.../class/MyClass2.php'
+                 *     2 => string '.../class/MyClass3.php'
+                 *     ...
+                 *
+                 */
+                $_aFiles = array();
+                foreach( $aFilePaths as $_sFilePath ) {
+
+                    $_sPHPCode      = $this->_getPHPCode( $_sFilePath );
+                    $_aFileInfo     = array(    // the file name without extension will be assigned to the key
+                        'path'              => $_sFilePath,
+                        'code'              => $_sPHPCode ? trim( $_sPHPCode ) : '',
+                        'dependency'        => $this->_getParentClass( $_sPHPCode ),
+                    ) + $this->_getDefinedObjectConstructs( '<?php ' . $_sPHPCode );
+
+                    // the file name without extension will be assigned to the key
+                    foreach( array_merge( $_aFileInfo[ 'classes' ], $_aFileInfo[ 'interfaces' ], $_aFileInfo[ 'traits' ] ) as $_sClassName ) {
+                        $_aFiles[ $_sClassName ] = $_aFileInfo;
+                    }
+
+                }
+                return $_aFiles;
+
+            }
+
+
 
     /**
      * @param $sBaseDirPath
@@ -189,174 +262,104 @@ class PHPClassMapGenerator extends PHPClassMapGenerator_Base {
      * @return void
      */
     protected function _setProperties( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, array $aOptions ) {
-        $this->sBaseDirPath     = $sBaseDirPath;
-        $this->sOutputFilePath  = $sOutputFilePath;
-        $this->aOptions         = $this->_getOptionsFormatted( $aOptions );
+        $this->sBaseDirPath     = $this->_getPathFormatted( $sBaseDirPath );
+        $this->sOutputFilePath  = $this->_getPathFormatted( $sOutputFilePath );
+        $this->aOptions         = $this->___getOptionsFormatted( $aOptions );
         $this->sCarriageReturn	= php_sapi_name() == 'cli' ? PHP_EOL : '<br />';
         $this->aScanDirPaths    = ( array ) $asScanDirPaths;
-        $this->_setItems();
+        $this->aScanDirPaths    = array_map( array( $this, '_getPathFormatted' ), $this->aScanDirPaths );
+        $this->___setItems();
     }
-
-    /**
-     * @since   1.1.0
-     */
-    protected function _setItems() {
-
-        if ( $this->aOptions[ 'output_buffer' ] ) {
-            echo 'Searching files under the directories: ' . implode( ', ', $this->aScanDirPaths ) . $this->sCarriageReturn;
+        /**
+         * @param array $aOptions
+         * @return array
+         * @since   1.1.0
+         */
+        private function ___getOptionsFormatted( array $aOptions ) {
+            $aOptions			    = $aOptions + self::$_aStructure_Options;
+            $aOptions[ 'search' ]	= $aOptions[ 'search' ] + self::$_aStructure_Options[ 'search' ];
+            return $aOptions;
         }
+        /**
+         * @since   1.1.0
+         */
+        private function ___setItems() {
 
-        // 1. Store file contents into an array.
-        $this->aItems = $this->getItems();
+            $this->output( 'Searching files under the directories: ' . implode( ', ', $this->aScanDirPaths ) );
 
-        // 2. Generate the output script header comment
-        $this->___setHeaderComment();
+            $this->aItems = $this->getItems();
 
-        $this->_sort( $this->aItems );
+            $this->___setProjectHeaderComment();
 
-    }
-        private function ___setHeaderComment() {
-            $this->sHeaderComment = $this->_getHeaderComment( $this->aItems, $this->aOptions );
-            if ( $this->aOptions[ 'output_buffer' ] ) {
-                echo( $this->sHeaderComment ) . $this->sCarriageReturn;
-            }
+            $this->___sort( $this->aItems );
+
         }
-    
-    /**
-     * @param array $aOptions
-     * @return array
-     * @since   1.1.0
-     */
-    protected function _getOptionsFormatted( array $aOptions ) {
-        $aOptions			    = $aOptions + self::$_aStructure_Options + parent::$_aStructure_Options;
-        $aOptions[ 'search' ]	= $aOptions[ 'search' ] + self::$_aStructure_Options[ 'search' ] + parent::$_aStructure_Options[ 'search' ];
-        return $aOptions;
-    }
-
-    /**
-     * @param $aScanDirPaths
-     * @param $sOutputFilePath
-     * @return array
-     */
-    protected function _getItems( array $aScanDirPaths, $sOutputFilePath ) {
-        $_aFilePaths	= $this->_getFileLists( $aScanDirPaths, $this->aOptions[ 'search' ] );
-        if ( 'PATH' === $this->aOptions[ 'structure' ] ) {
-            if ( $this->aOptions[ 'output_buffer' ] ) {
-                echo sprintf( 'Found %1$s file(s)', count( $_aFilePaths ) ) . $this->sCarriageReturn;
-            }
-            return $_aFilePaths;
-        }
-        $_aClasses		= $this->_getFileArrayFormatted( $_aFilePaths );
-        unset( $_aClasses[ pathinfo( $sOutputFilePath, PATHINFO_FILENAME ) ] );	// it's possible that the minified file also gets loaded but we don't want it.
-        if ( $this->aOptions[ 'output_buffer' ] ) {
-            echo sprintf(
-                'Found %1$s file(s) and %2$s item(s)',
-                count( $_aFilePaths ),
-                count( $_aClasses )
-            ) . $this->sCarriageReturn;
-        }
-        return $_aClasses;
-    }
-    
-    /**
-     * Sort the classes - in some PHP versions, parent classes must be defined before extended classes.
-     * @since   1.1.0
-     * @param array &$aItems
-     */
-    protected function _sort( array &$aItems ) {
-        $aItems = $this->___sort( $aItems, $this->aOptions[ 'exclude_classes' ] );
-        if ( $this->aOptions[ 'output_buffer' ] ) {
-            echo sprintf( 'Sorted %1$s item(s)', count( $aItems ) ) . $this->sCarriageReturn;
-        }        
-    }
-
-    private function ___sort( array $aItems, array $aExcludingClassNames ) {
-
-        if ( 'CLASS' !== $this->aOptions[ 'structure' ] ) {
-            return $aItems;
-        }
-
-        $aItems = $this->___getDefinedObjectConstructsExtracted( $aItems, $aExcludingClassNames );
-        foreach( $aItems as $_sClassName => $_aFile ) {
-            if ( in_array( $_sClassName, $aExcludingClassNames ) ) {
-                unset( $aItems[ $_sClassName ] );
-            }
-        }
-        return $aItems;
-
-    }
-        private function ___getDefinedObjectConstructsExtracted( array $aItems, array $aExcludingClassNames ) {
-
-            $_aAdditionalClasses = array();
-            foreach( $aItems as $_sClassName => $_aItem ) {
-                $_aObjectConstructs = array_merge( $_aItem[ 'classes' ], $_aItem[ 'traits' ], $_aItem[ 'interfaces' ] );
-                foreach( $_aObjectConstructs as $_sAdditionalClass ) {
-                    if ( in_array( $_sAdditionalClass, $aExcludingClassNames ) ) {
-                        continue;
+            private function ___setProjectHeaderComment() {
+                try {
+                    $_oHeaderGenerator    = new HeaderGenerator( $this->aItems, $this->aOptions );
+                    $this->sHeaderComment = $_oHeaderGenerator->get();
+                    if ( ! $this->sHeaderComment ) {
+                        throw new \ReflectionException( 'No header comment generated.' );
                     }
-                    $_aAdditionalClasses[ $_sAdditionalClass ] = $_aItem;
+                } catch ( \ReflectionException $e ) {
+                    $this->output( 'Could not set a project header comment. ' . $e->getMessage() );
                 }
+                $this->output( $this->sHeaderComment );
             }
-            return $_aAdditionalClasses;
 
-        }
+            /**
+             * Sort the classes - in some PHP versions, parent classes must be defined before extended classes.
+             * @since   1.1.0
+             * @param array &$aItems
+             */
+            private function ___sort( array &$aItems ) {
+                $aItems = $this->___getSortedItems( $aItems, $this->aOptions[ 'exclude_classes' ] );
+                $this->output( sprintf( 'Sorted %1$s item(s)', count( $aItems ) ) );
+            }
+                private function ___getSortedItems( array $aItems, array $aExcludingClassNames ) {
 
-    private function ___write( $sOutputFilePath ) {
+                    if ( 'CLASS' !== $this->aOptions[ 'structure' ] ) {
+                        return $aItems;
+                    }
 
-        // Remove the existing file.
-        if ( file_exists( $sOutputFilePath ) ) {
-            unlink( $sOutputFilePath );
-        }
+                    $aItems = $this->___getDefinedObjectConstructsExtracted( $aItems, $aExcludingClassNames );
+                    foreach( $aItems as $_sClassName => $_aFile ) {
+                        if ( in_array( $_sClassName, $aExcludingClassNames ) ) {
+                            unset( $aItems[ $_sClassName ] );
+                        }
+                    }
+                    return $aItems;
 
-        // Write to a file.
-        file_put_contents( $sOutputFilePath, $this->getMap() . PHP_EOL, FILE_APPEND | LOCK_EX );
+                }
+                    private function ___getDefinedObjectConstructsExtracted( array $aItems, array $aExcludingClassNames ) {
 
-    }
+                        $_aAdditionalClasses = array();
+                        foreach( $aItems as $_sClassName => $_aItem ) {
+                            $_aObjectConstructs = array_merge( $_aItem[ 'classes' ], $_aItem[ 'traits' ], $_aItem[ 'interfaces' ] );
+                            foreach( $_aObjectConstructs as $_sAdditionalClass ) {
+                                if ( in_array( $_sAdditionalClass, $aExcludingClassNames ) ) {
+                                    continue;
+                                }
+                                $_aAdditionalClasses[ $_sAdditionalClass ] = $_aItem;
+                            }
+                        }
+                        return $_aAdditionalClasses;
 
-    protected function _getItemConvertedToPath( $aItem ) {
-        $_sBaseDirVar = $this->aOptions[ 'base_dir_var' ];
-        $_sPath		  = str_replace( '\\', '/', $aItem[ 'path' ] );
-        $_sPath		  = $this->___getRelativePath( $this->sBaseDirPath, $_sPath );
-        return $_sBaseDirVar . ' . "' . $_sPath . '"';
-    }
+                    }
+
 
     /**
-     * Calculates the relative path from the given path.
+     * Echoes the passed string.
      *
+     * @param       string      $sText
+     * @since       1.0.0
+     * @return      void
      */
-    private function ___getRelativePath( $from, $to ) {
-
-        // some compatibility fixes for Windows paths
-        $from = is_dir($from) ? rtrim($from, '\/') . '/' : $from;
-        $to   = is_dir($to)   ? rtrim($to, '\/') . '/'   : $to;
-        $from = str_replace('\\', '/', $from);
-        $to   = str_replace('\\', '/', $to);
-
-        $from     = explode('/', $from);
-        $to       = explode('/', $to);
-        $relPath  = $to;
-
-        foreach($from as $depth => $dir) {
-            // find first non-matching dir
-            if($dir === $to[$depth]) {
-                // ignore this directory
-                array_shift($relPath);
-            } else {
-                // get number of remaining dirs to $from
-                $remaining = count($from) - $depth;
-                if($remaining > 1) {
-                    // add traversals up to first matching dir
-                    $padLength = (count($relPath) + $remaining - 1) * -1;
-                    $relPath = array_pad($relPath, $padLength, '..');
-                    break;
-                } else {
-                    $relPath[0] = './' . $relPath[0];
-                }
-            }
+    public function output( $sText ) {
+        if ( ! $this->aOptions[ 'output_buffer' ] ) {
+            return;
         }
-
-        $relPath = implode( '/', $relPath );
-        return ltrim( $relPath, '.' );
+        echo $sText . $this->sCarriageReturn;
     }
 
 }
