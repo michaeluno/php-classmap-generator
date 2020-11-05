@@ -142,7 +142,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
             if ( file_exists( $sOutputFilePath ) ) {
                 unlink( $sOutputFilePath );
             }
-            file_put_contents( $sOutputFilePath, $this->getMap() . PHP_EOL, FILE_APPEND | LOCK_EX );
+            file_put_contents( $sOutputFilePath, $this->getMap(),LOCK_EX );
         }
 
     /**
