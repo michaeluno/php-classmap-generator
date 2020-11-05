@@ -154,7 +154,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
         $_aData = array(
             mb_convert_encoding( '<?php ' . PHP_EOL . $this->sHeaderComment, 'UTF-8', 'auto' ),
             'return' === $this->aOptions[ 'output_var_name' ]
-                ? 'return array( ' . PHP_EOL
+                ? 'return array(' . PHP_EOL
                 : $this->aOptions[ 'output_var_name' ] . ' = array( ' . PHP_EOL,
         );
         foreach( $this->get() as $_sClassName => $_sPath ) {
