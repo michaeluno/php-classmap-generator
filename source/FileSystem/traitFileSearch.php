@@ -79,6 +79,7 @@ trait traitFileSearch {
 
             $_aFiles    = glob( $sPathPatten, $nFlags );
             $_aFiles    = is_array( $_aFiles ) ? $_aFiles : array();    // glob() can return false.
+            $_aFiles    = array_filter( $_aFiles, 'is_file' );   // drop directories that happen to be included. This can occur with the pattern like *.js and a directory named something.js.
             $_aFiles    = array_map( array( $this, '_getPathFormatted' ), $_aFiles );
             $_aFiles    = $this->___dropExcludingFiles( $_aFiles, $aExcludeFileNames, $aExcludedSubstrings );
             return $_aFiles;
@@ -98,7 +99,7 @@ trait traitFileSearch {
                     return $aFiles;
                 }
                 foreach( $aFiles as $_iIndex => $_sPath ) {
-                    $_sBaseFileName        = basename( $_sPath );
+                    $_sBaseFileName = basename( $_sPath );
                     if ( $this->___hasSubstring( $_sBaseFileName, $aExcludingFileNames ) ) {
                         unset( $aFiles[ $_iIndex ] );
                         continue;

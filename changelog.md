@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.1.1 - 2020/11/06
+- Fixed a bug that listed directories with a name with an extension that is specified with the search option when only files should be listed.   
+
 ## 1.1.0 - 2020/09/14
 - Added the `exclude_substtings` search argument.
 - Added the `structure` argument.
