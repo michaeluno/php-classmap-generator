@@ -191,8 +191,8 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
         return $this->_getItems( $this->aScanDirPaths, $this->sOutputFilePath );
     }
         /**
-         * @param $aScanDirPaths
-         * @param $sOutputFilePath
+         * @param  array  $aScanDirPaths
+         * @param  string $sOutputFilePath
          * @return array
          */
         protected function _getItems( array $aScanDirPaths, $sOutputFilePath ) {
@@ -254,12 +254,11 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
 
 
     /**
-     * @param $sBaseDirPath
-     * @param $asScanDirPaths
-     * @param $sOutputFilePath
-     * @param array $aOptions
-     * @since   1.1.0
-     * @return void
+     * @param  string       $sBaseDirPath
+     * @param  array|string $asScanDirPaths
+     * @param  string       $sOutputFilePath
+     * @param  array        $aOptions
+     * @since  1.1.0
      */
     protected function _setProperties( $sBaseDirPath, $asScanDirPaths, $sOutputFilePath, array $aOptions ) {
         $this->sBaseDirPath     = $this->_getPathFormatted( $sBaseDirPath );
@@ -271,9 +270,9 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
         $this->___setItems();
     }
         /**
-         * @param array $aOptions
+         * @param  array $aOptions
          * @return array
-         * @since   1.1.0
+         * @since  1.1.0
          */
         private function ___getOptionsFormatted( array $aOptions ) {
             $aOptions			    = $aOptions + self::$_aStructure_Options;
