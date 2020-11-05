@@ -8,6 +8,14 @@ trait traitFileSearch {
 
     /**
      * The recursive version of the glob() function.
+     * @param  string  $sPathPatten
+     * @param  integer $nFlags
+     * @param  array   $aExcludeDirPaths
+     * @param  array   $aExcludeDirNames
+     * @param  array   $aExcludeFileNames
+     * @param  array   $aIgnoreNotes
+     * @param  array   $aExcludedSubstrings
+     * @return array
      */
     protected function _doRecursiveGlob( $sPathPatten, $nFlags=0, array $aExcludeDirPaths=array(), array $aExcludeDirNames=array(), array $aExcludeFileNames=array(), array $aIgnoreNotes=array(), array $aExcludedSubstrings=array() ) {
 
@@ -46,10 +54,10 @@ trait traitFileSearch {
         /**
          * Checks whether a file exists.
          *
-         * @remark  Checks all the paths given as array members and at least one of them exists, the method returns true.
-         * @param array $aFilePaths
-         * @param string $sSuffix The path suffix to prepend to the path set in the array.
-         * @return bool
+         * @remark Checks all the paths given as array members and at least one of them exists, the method returns true.
+         * @param  array   $aFilePaths
+         * @param  string  $sSuffix     The path suffix to prepend to the path set in the array.
+         * @return boolean
          */
         private function ___fileExists( array $aFilePaths, $sSuffix='' ) {
             foreach( $aFilePaths as $_sFilePath ) {
@@ -61,10 +69,10 @@ trait traitFileSearch {
         }
 
         /**
-         * @param $sPathPatten
-         * @param $nFlags
-         * @param array $aExcludeFileNames
-         * @param array $aExcludedSubstrings
+         * @param  string  $sPathPatten
+         * @param  integer $nFlags
+         * @param  array   $aExcludeFileNames
+         * @param  array   $aExcludedSubstrings
          * @return array
          */
         private function ___getFilesByGlob( $sPathPatten, $nFlags, array $aExcludeFileNames, array $aExcludedSubstrings ) {
@@ -105,8 +113,8 @@ trait traitFileSearch {
             }
                 /**
                  *
-                 * @param $sString
-                 * @param array $aNeedles
+                 * @param  string  $sString
+                 * @param  array   $aNeedles
                  * @return boolean `true` if at lease one match is found. `false` if none of the needles match.
                  */
                 private function ___hasSubstring( $sString, array $aNeedles ) {
@@ -122,7 +130,7 @@ trait traitFileSearch {
 
     /**
      * Constructs the file pattern of the file extension part used for the glob() function with the given file extensions.
-     * @param array $aExtensions
+     * @param  array $aExtensions
      * @return string
      */
     protected function _getGlobPatternExtensionPart( array $aExtensions=array( 'php', 'inc' ) ) {
