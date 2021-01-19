@@ -1,5 +1,6 @@
 <?php 
 return [
+    "FooAlias" => CLASS_MAP_BASE_DIR_VAR . "/_scandir/FooAlias.php", 
     "Foo\\FooClass" => CLASS_MAP_BASE_DIR_VAR . "/_scandir/FooClass.php", 
     "Foo\\FooClass_Base" => CLASS_MAP_BASE_DIR_VAR . "/_scandir/FooClass_Base.php", 
     "NoNamespace" => CLASS_MAP_BASE_DIR_VAR . "/_scandir/NoNamespace.php", 
