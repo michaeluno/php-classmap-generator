@@ -3,7 +3,7 @@
  * Helps to generate class maps.
  * 
  * @author       Michael Uno <michael@michaeluno.jp>
- * @copyright    2020 (c) Michael Uno
+ * @copyright    2020- (c) Michael Uno
  * @license      MIT <http://opensource.org/licenses/MIT>
  */
 
