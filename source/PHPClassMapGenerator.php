@@ -117,6 +117,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
         'output_var_name'		=> '$aClassMap',
         'structure'             => 'CLASS',     // 1.1.0 Accepted values: `CLASS`, `PATH` For `CLASS`, the generated array keys consist of class names. For `PATH` array keys will consist of file paths.
         'do_in_constructor'     => true,        // 1.1.0 Whether to perform the task in the constructor
+        'short_array_syntax'    => false,       // [1.2.0+]
 
         // Search options
         'search'	=>	array(
@@ -151,18 +152,20 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
      */
     public function getMap() {
 
-        $_aData = array(
+        $_sOpening = $this->aOptions[ 'short_array_syntax' ] ? '[' : 'array(';
+        $_sClosing = $this->aOptions[ 'short_array_syntax' ] ? ']' : ')';
+        $_aData    = array(
             mb_convert_encoding( '<?php ' . PHP_EOL . $this->sHeaderComment, 'UTF-8', 'auto' ),
             'return' === $this->aOptions[ 'output_var_name' ]
-                ? 'return array(' . PHP_EOL
-                : $this->aOptions[ 'output_var_name' ] . ' = array( ' . PHP_EOL,
+                ? "return {$_sOpening}" . PHP_EOL
+                : $this->aOptions[ 'output_var_name' ] . " = {$_sOpening} " . PHP_EOL,
         );
         foreach( $this->get() as $_sClassName => $_sPath ) {
             $_sClassName = str_replace( '\\', '\\\\', $_sClassName ); // escape backslashes as \t (tab character) will cause a problem
             $_aData[]    = "    " . '"' . $_sClassName . '"' . ' => '
                 . $_sPath . ', ' . PHP_EOL;
         }
-        $_aData[] = ');';
+        $_aData[] = "{$_sClosing};";
         return trim( implode( '', $_aData ) );
 
     }

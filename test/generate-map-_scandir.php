@@ -8,5 +8,6 @@ new \PHPClassMapGenerator\PHPClassMapGenerator(
     __DIR__ . '/class-map.php',
     [
         'output_var_name'		=> 'return',
+        'short_array_syntax'    => true,
     ]
 );

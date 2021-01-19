@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.2.0 - 2020/01/19
+- Added the `short_array_syntax` argument.
+
 ## 1.1.1 - 2020/11/06
 - Fixed a redundant white spaces and lines in outputs.
 - Fixed a bug that listed directories with a name with an extension that is specified with the search option when only files should be listed.   
