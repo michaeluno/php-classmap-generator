@@ -117,27 +117,18 @@ trait traitCodeParser {
             $_sClassName = $this->___getObjectConstructNameExtractedFromToken( $_aTokens, $i, T_CLASS );
             if ( $_sClassName ) {
                 $_aConstructs[ 'classes' ][] = $_sCurrentNameSpace . $_sClassName;
-//                    if ( ! $_sCurrentNameSpace ) {
-//                        $_aConstructs[ 'classes' ][] = '\\' . $_sClassName; // global namespace; no heading backslash version is added also for backward-compatibility with PHP v5.2.x.
-//                    }
             }
 
             // Interface
             $_sInterface = $this->___getObjectConstructNameExtractedFromToken( $_aTokens, $i, T_INTERFACE );
             if ( $_sInterface ) {
                 $_aConstructs[ 'interfaces' ][] = $_sCurrentNameSpace . $_sInterface;
-//                    if ( ! $_sCurrentNameSpace ) {
-//                        $_aConstructs[ 'interfaces' ][] = '\\' . $_sInterface;
-//                    }
             }
 
             // Trait
-            $_sInterface = $this->___getObjectConstructNameExtractedFromToken( $_aTokens, $i, T_TRAIT );
-            if ( $_sInterface ) {
-                $_aConstructs[ 'traits' ][] = $_sCurrentNameSpace . $_sInterface;
-//                    if ( ! $_sCurrentNameSpace ) {
-//                        $_aConstructs[ 'traits' ][] = '\\' . $_sInterface;
-//                    }
+            $_sTrait = $this->___getObjectConstructNameExtractedFromToken( $_aTokens, $i, T_TRAIT );
+            if ( $_sTrait ) {
+                $_aConstructs[ 'traits' ][] = $_sCurrentNameSpace . $_sTrait;
             }
         }
         return $_aConstructs;
@@ -153,7 +144,7 @@ trait traitCodeParser {
             if ( T_STRING !== $aTokens[ $i ][ 0 ] ) {
                 return '';
             }
-            return $aTokens[ $i ][ 1 ];;
+            return $aTokens[ $i ][ 1 ];
         }
         private function ___getNamespaceExtractedFromTokens( array $aTokens, $i, $iCount ) {
             $_sNamespace = '';
