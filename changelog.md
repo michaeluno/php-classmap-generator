@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.2.1 - 2020/01/19
+- Fixed a bug that class aliases were not parsed properly.
+
 ## 1.2.0 - 2020/01/19
 - Added the ability to include class aliases.
 - Added the `short_array_syntax` argument.

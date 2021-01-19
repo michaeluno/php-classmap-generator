@@ -156,7 +156,7 @@ trait traitCodeParser {
                 return array();
             }
             $_aParameters = array();
-            for ( $_i = $i; $_i < 20; $_i++ ) {
+            for ( $_i = $i; $_i < count( $aTokens ); $_i++ ) {
                 if ( ! is_array( $aTokens[ $_i ] ) ) {
                     continue;
                 }
