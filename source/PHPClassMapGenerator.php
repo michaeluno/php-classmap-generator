@@ -17,7 +17,7 @@ use PHPClassMapGenerator\Header\HeaderGenerator;
  * This is meant to be used for the callback function for the spl_autoload_register() function.
  *
  * @remark		The parsed class file must have a name of the class defined in the file.
- * @version		1.1.1
+ * @version		1.2.0
  */
 class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
 
@@ -245,7 +245,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
                     ) + $this->_getDefinedObjectConstructs( '<?php ' . $_sPHPCode );
 
                     // the file name without extension will be assigned to the key
-                    foreach( array_merge( $_aFileInfo[ 'classes' ], $_aFileInfo[ 'interfaces' ], $_aFileInfo[ 'traits' ] ) as $_sClassName ) {
+                    foreach( array_merge( $_aFileInfo[ 'classes' ], $_aFileInfo[ 'interfaces' ], $_aFileInfo[ 'traits' ], $_aFileInfo[ 'aliases' ] ) as $_sClassName ) {
                         $_aFiles[ $_sClassName ] = $_aFileInfo;
                     }
 
@@ -337,7 +337,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
 
                         $_aAdditionalClasses = array();
                         foreach( $aItems as $_sClassName => $_aItem ) {
-                            $_aObjectConstructs = array_merge( $_aItem[ 'classes' ], $_aItem[ 'traits' ], $_aItem[ 'interfaces' ] );
+                            $_aObjectConstructs = array_merge( $_aItem[ 'classes' ], $_aItem[ 'traits' ], $_aItem[ 'interfaces' ], $_aItem[ 'aliases' ] );
                             foreach( $_aObjectConstructs as $_sAdditionalClass ) {
                                 if ( in_array( $_sAdditionalClass, $aExcludingClassNames ) ) {
                                     continue;
