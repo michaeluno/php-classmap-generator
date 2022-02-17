@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.2.2 - 2022/02/17
+- Fixed a bug that caused an undefined index notice when the `header_class_name` argument was set.
+
 ## 1.2.1 - 2020/01/19
 - Fixed a bug that class aliases were not parsed properly.
 
