@@ -26,7 +26,7 @@ $aClassMap = array(
 Before include the map file, define the constant `CLASS_MAP_BASE_DIR_VAR`. 
 
 ```php
-    define( 'CLASS_MAP_BASE_DIR_VAR', __DIR__ )
+    define( 'CLASS_MAP_BASE_DIR_VAR', __DIR__ );
 ``` 
 or whatever the base directory path should be.
 
@@ -111,8 +111,8 @@ new \PHPClassMapGenerator\PHPClassMapGenerator(
 ##### Do not write to a file
 ```php
 $_oGenerator = new \PHPClassMapGenerator\PHPClassMapGenerator(
-    __DIR__, // base dir
-    __DIR__ . '/_scandir', // scan dir name
+    __DIR__,                        // base dir
+    __DIR__ . '/_scandir',          // scan dir name
     __DIR__ . '/class-map.php',
     [
         'do_in_constructor'     => false,
@@ -124,8 +124,8 @@ print_r( $_oGenerator->get() );
 #### Find CSS files
 ```php
 $_oGenerator = new \PHPClassMapGenerator\PHPClassMapGenerator(
-    __DIR__, // base dir
-    __DIR__ . '/_scandir', // scan dir name
+    __DIR__,                        // base dir
+    __DIR__ . '/_scandir',          // scan dir name
     __DIR__ . '/class-map.php',
     [
         'output_var_name'		=> 'return',
