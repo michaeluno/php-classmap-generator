@@ -1,6 +1,5 @@
 <?php
 
-
 namespace PHPClassMapGenerator\Header;
 
 use PHPClassMapGenerator\Utility\traitCodeParser;
@@ -18,10 +17,8 @@ class HeaderGenerator {
      * @param array $aOptions
      */
     public function __construct( array $aItems, array $aOptions ) {
-
-        $this->aItems = $aItems;
+        $this->aItems   = $aItems;
         $this->aOptions = $aOptions;
-
     }
 
     /**
