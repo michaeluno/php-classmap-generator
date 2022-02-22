@@ -4,6 +4,7 @@
   "minimum-stability": "stable",
   "license": "MIT",
   "type": "library",
+  "keywords": [ "class map", "php", "class list", "files", "file list" ],
   "authors": [
     {
       "name": "Michael Uno",
