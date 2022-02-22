@@ -1,6 +1,7 @@
 # Change Log
 
 ## 1.3.0 - 2022/02/22
+- Added the ability to specify a comment header of a specified file.
 
 ## 1.2.2 - 2022/02/17
 - Fixed a bug that caused an undefined index notice when the `header_class_name` argument was set.

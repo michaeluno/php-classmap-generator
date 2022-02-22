@@ -7,6 +7,45 @@ namespace PHPClassMapGenerator\Utility;
 trait traitCodeParser {
 
     /**
+     * @param  $sCode
+     * @return string
+     * @since  1.3.0
+     */
+    static public function getFirstFoundMultilineComment( $sCode ) {
+        preg_match( '/\/\*+?(.*)\*\//Us', $sCode, $_aMatches );
+        return isset( $_aMatches[ 0 ] ) ? ( string ) $_aMatches[ 0 ] : '';
+    }
+
+    /**
+     * @param  string $sMultiLineComment
+     * @return string
+     * @since  1.3.0
+     */
+    static public function getMultiLineCommentUnwrapped( $sMultiLineComment ) {
+        $_sText = '';
+        preg_match( '/\/\*+?(.*)\*\//Us', $sMultiLineComment, $_aMatches );
+        foreach( preg_split("/\r\n|\n|\r/", trim( $_aMatches[ 1 ], '\t\n\r\0\x0B' ) ) as $_i => $_sLine ) {
+            $_sText .= preg_replace( '/^(\s|\/)+\*+(\s|$)/', '', $_sLine ) . PHP_EOL;
+        }
+        return trim( $_sText );
+    }
+
+    /**
+     * @param  string $sMultilineComment
+     * @param  string $sBlockNotation       The first character set to mark the type of block. /** indicates a PHP doc-block. /*! is an important comment not to minify in JavaScript.
+     * @return string
+     * @since  1.3.0
+     */
+    static public function getMultilineCommentWrapped( $sMultilineComment, $sBlockNotation='*' ) {
+        $_sComment = '/*' . $sBlockNotation . PHP_EOL;
+        foreach( preg_split("/\r\n|\n|\r/", $sMultilineComment ) as $_i => $_sLine ) {
+            $_sComment .= ' * ' . $_sLine . PHP_EOL;
+        }
+        $_sComment .= ' */' . PHP_EOL;
+        return $_sComment;
+    }
+
+    /**
      * Returns the docblock of the specified class
      * @param   string $sClassName
      * @throws \ReflectionException

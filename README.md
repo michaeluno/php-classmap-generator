@@ -83,7 +83,11 @@ This parameter accepts an array holding options.
     - `exclude_substrings`: (array) sub-strings of paths to exclude from the list. e.g. `[ '.min', '_del', 'temp', 'library', 'vendor' ]`
     - `is_recursive`: (boolean) whether to scan sub-directories.
     - `ignore_note_file_names`: (array) ignore note file names that tell the parser to skip the directory. When one of the files exist in the parsing directory, the directory will be skipped. Default: `[ 'ignore-class-map.txt' ]`,   
-
+ - `comment_header`  : (array, optional)   what header comment to insert at the top of the generated file
+    - `text`  : (string, optional) the header comment to set    
+    - `path`  : (string, optional) the file path to extract the comment from
+    - `class` : (string, optional) the class name to use its doc-block as the header comment
+    - `type`  : (string, optional) indicates what type of data to collect. Accepted values are `DOCBLOCK`, `CONSTANT`. 
 ##### Example
 
 ##### Generating a class map in the script directory.     

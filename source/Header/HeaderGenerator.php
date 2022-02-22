@@ -9,7 +9,18 @@ class HeaderGenerator {
     use traitCodeParser;
 
     public $aItems   = [];
-    public $aOptions = [];
+    public $aOptions = [
+        'text'               => null,   // the direct comment content text
+        'class'              => null,   // the class name tha has the header comment
+        'type'               => null,   // the type of header comment to extract, accepts `DOCBLOCK`, `CONSTANTS`, `COMMENT`
+        'path'               => null,   // the file path where the header comment to extract from
+        'wrap'               => true,   // whether to enclose the comment in the PHP multi-line comment syntax /* */.
+
+        // legacy options
+        'header_class_name'  => null,
+        'header_class_path'  => null,
+        'header_type'        => null,
+    ];
 
     /**
      * HeaderGenerator constructor.
@@ -18,8 +29,23 @@ class HeaderGenerator {
      */
     public function __construct( array $aItems, array $aOptions ) {
         $this->aItems   = $aItems;
-        $this->aOptions = $aOptions;
+        $this->aOptions = $this->___getOptionsFormatted( $aOptions );
     }
+        private function ___getOptionsFormatted( array $aOptions ) {
+            $_aOptions = $aOptions + $this->aOptions;
+            // Backward-compatibility
+            $_aLegacyArgumentsToConvert = [
+                'header_class_path' => 'path',
+                'header_class_name' => 'class',
+                'header_type'       => 'type',
+            ];
+            foreach( $_aLegacyArgumentsToConvert as $_sLegacyKey => $_sCurrentVersionKey ) {
+                if ( ! empty( $_aOptions[ $_sLegacyKey ] ) && empty( $_aOptions[ $_sCurrentVersionKey ] ) ) {
+                    $_aOptions[ $_sCurrentVersionKey ] = $_aOptions[ $_sLegacyKey ];
+                }
+            }
+            return $_aOptions;
+        }
 
     /**
      *
@@ -27,8 +53,18 @@ class HeaderGenerator {
      * @throws \ReflectionException
      */
     public function get() {
-        return $this->___getProjectHeaderComment( $this->aItems, $this->aOptions );
+
+        if ( ! empty( $this->aOptions[ 'text' ] ) ) {
+            return $this->aOptions[ 'wrap' ]
+                ? $this->getMultilineCommentWrapped( $this->aOptions[ 'text' ] )
+                : $this->aOptions[ 'text' ];
+        }
+
+        $_sMultilineComment = $this->___getProjectHeaderComment( $this->aItems, $this->aOptions );
+        return $this->aOptions[ 'wrap' ] ? $_sMultilineComment : $this->getMultiLineCommentUnwrapped( $_sMultilineComment );
+
     }
+
         /**
          * Generates the heading comment from the given path or class name.
          * @param array $aItems
@@ -38,36 +74,42 @@ class HeaderGenerator {
          */
         private function ___getProjectHeaderComment( array $aItems, array $aOptions )     {
 
-            if ( $aOptions[ 'header_class_path' ] && $aOptions[ 'header_class_name' ] ) {
+            // A pass and a class name is given
+            if ( ! empty( $aOptions[ 'path' ] ) && ! empty( $aOptions[ 'class' ] ) ) {
+                return $this->___getProjectHeaderCommentGenerated($aOptions[ 'path' ], $aOptions[ 'class' ], $aOptions[ 'type' ]);
+            }
+            // A class name is given
+            if ( ! empty( $aOptions[ 'class' ] ) ) {
                 return $this->___getProjectHeaderCommentGenerated(
-                    $aOptions[ 'header_class_path' ],
-                    $aOptions[ 'header_class_name' ],
-                    $aOptions[ 'header_type' ]
+                    isset( $aItems[ $aOptions[ 'class' ] ] )
+                        ? $aItems[ $aOptions[ 'class' ] ][ 'path' ]
+                        : $aOptions[ 'path' ],
+                    $aOptions[ 'class' ],
+                    $aOptions[ 'type' ]
                 );
             }
 
-            if ( $aOptions[ 'header_class_name' ] ) {
-                return $this->___getProjectHeaderCommentGenerated(
-                    isset( $aItems[ $aOptions[ 'header_class_name' ] ] )
-                        ? $aItems[ $aOptions['header_class_name'] ][ 'path' ]
-                        : $aOptions[ 'header_class_path' ],
-                    $aOptions[ 'header_class_name' ],
-                    $aOptions[ 'header_type' ]
-                );
+            if ( empty( $aOptions[ 'path' ] ) ) {
+                return '';
             }
 
-            if ( $aOptions[ 'header_class_path' ] ) {
-                $_aConstructs        = $this->_getDefinedObjectConstructs( '<?php ' . $this->_getPHPCode( $aOptions[ 'header_class_path' ] ) );
-                $_aDefinedClasses    = $_aConstructs[ 'classes' ];
-                $_sHeaderClassName   = isset( $_aDefinedClasses[ 0 ] ) ? $_aDefinedClasses[ 0 ] : '';
-                return $this->___getProjectHeaderCommentGenerated(
-                    $aOptions[ 'header_class_path' ],
-                    $_sHeaderClassName,
-                    $aOptions[ 'header_type' ]
-                );
+            // A pass is given.
+
+            /// Get first found comment block from a file.
+            $_sCommentBlock      = $this->getFirstFoundMultilineComment( file_get_contents( $aOptions[ 'path' ] ) );
+            if ( ! empty( $_sCommentBlock ) ) {
+                return $_sCommentBlock;
             }
 
-            return '';
+            /// Extract a comment block from a fist found class doc-block.
+            $_aConstructs        = $this->_getDefinedObjectConstructs( '<?php ' . $this->_getPHPCode( $aOptions[ 'path' ] ) );
+            $_aDefinedClasses    = $_aConstructs[ 'classes' ];
+            $_sHeaderClassName   = isset( $_aDefinedClasses[ 0 ] ) ? $_aDefinedClasses[ 0 ] : '';
+            return $this->___getProjectHeaderCommentGenerated(
+                $aOptions[ 'path' ],
+                $_sHeaderClassName,
+                $aOptions[ 'type' ]
+            );
 
         }
             /**
@@ -95,7 +137,7 @@ class HeaderGenerator {
                     }
                     return 'DOCBLOCK' === $sHeaderType
                         ? $this->_getClassDocBlock( $_sClassName )
-                        : $this->___generateHeaderComment( $_sClassName );
+                        : $this->getMultilineCommentWrapped( $this->___generateHeaderComment( $_sClassName ) );
                 }
                 return '';
 
@@ -117,16 +159,15 @@ class HeaderGenerator {
                     'COPYRIGHT'     => '',  'LICENSE'       => '', 'CONTRIBUTORS'  => '',
                     ];
                 $_aOutputs      = [];
-                $_aOutputs[]    = '/**';
-                $_aOutputs[]    = ( $_aConstants[ 'NAME' ] ? "    " . $_aConstants[ 'NAME' ] . ' ' : '' )
+                $_aOutputs[]    = ( $_aConstants[ 'NAME' ] ? $_aConstants[ 'NAME' ] . ' ' : '' )
                     . ( $_aConstants[ 'VERSION' ]   ? 'v' . $_aConstants[ 'VERSION' ] . ' '  : '' )
                     . ( $_aConstants[ 'AUTHOR' ]    ? 'by ' . $_aConstants[ 'AUTHOR' ] . ' ' : ''  );
-                $_aOutputs[]    = $_aConstants[ 'DESCRIPTION' ]   ? "    ". $_aConstants[ 'DESCRIPTION' ] : '';
-                $_aOutputs[]    = $_aConstants[ 'URI' ]           ? "    ". '<' . $_aConstants[ 'URI' ] . '>' : '';
-                $_aOutputs[]    = ( $_aConstants[ 'COPYRIGHT' ]   ? "    " . $_aConstants[ 'COPYRIGHT' ] : '' )
+                $_aOutputs[]    = $_aConstants[ 'DESCRIPTION' ]   ? $_aConstants[ 'DESCRIPTION' ] : '';
+                $_aOutputs[]    = $_aConstants[ 'URI' ]           ? '<' . $_aConstants[ 'URI' ] . '>' : '';
+                $_aOutputs[]    = ( $_aConstants[ 'COPYRIGHT' ]   ? $_aConstants[ 'COPYRIGHT' ] : '' )
                     . ( $_aConstants[ 'LICENSE' ]    ? '; Licensed under ' . $_aConstants[ 'LICENSE' ] : '' );
-                $_aOutputs[]    = ' */';
-                return implode( PHP_EOL, array_filter( $_aOutputs ) ) . PHP_EOL;
+                return implode( PHP_EOL, array_filter( $_aOutputs ) );
+
             }
 
 }

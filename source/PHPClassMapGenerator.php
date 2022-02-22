@@ -1,10 +1,14 @@
 <?php
 /**
- * Helps to generate class maps.
- * 
- * @author       Michael Uno <michael@michaeluno.jp>
- * @copyright    2020- (c) Michael Uno
- * @license      MIT <http://opensource.org/licenses/MIT>
+ * PHP Class Map Generator
+ *
+ * Helps generate class maps of PHP files. The feature includes generating path lists of specified file types.
+ *
+ * @url       https://github.com/michaeluno/php-classmap-generator
+ * @author    Michael Uno <michael@michaeluno.jp>
+ * @copyright 2020- (c) Michael Uno
+ * @license   MIT <http://opensource.org/licenses/MIT>
+ * @version   1.3.0
  */
 
 namespace PHPClassMapGenerator;
@@ -16,8 +20,7 @@ use PHPClassMapGenerator\Header\HeaderGenerator;
  *
  * This is meant to be used for the callback function for the spl_autoload_register() function.
  *
- * @remark		The parsed class file must have a name of the class defined in the file.
- * @version		1.2.2
+ * @remark The parsed class file must have a name of the class defined in the file.
  */
 class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
 
@@ -126,7 +129,18 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
             'ignore_note_file_names' => ['ignore-class-map.txt'] // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
         ],
 
-    );
+        // Comment header
+        'comment_header'        => [
+            'text'               => '',   // the direct comment content text
+            'class'              => '',   // the class name tha has the header comment
+            'type'               => 'DOCBLOCK',   // the type of header comment to extract, accepts `DOCBLOCK`, `CONSTANT`, `COMMENT`
+            'path'               => '',   // the file path where the header comment to extract from
+        ],
+        // legacy @deprecated 1.3.0
+        'header_class_name'		=> null,
+        'header_class_path'		=> null,
+        'header_type'			=> null,
+    ];
 
     /**
      *
@@ -151,7 +165,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
         $_sOpening = $this->aOptions[ 'short_array_syntax' ] ? '[' : 'array(';
         $_sClosing = $this->aOptions[ 'short_array_syntax' ] ? ']' : ')';
         $_aData    = array(
-            mb_convert_encoding( '<?php ' . PHP_EOL . $this->sHeaderComment, 'UTF-8', 'auto' ),
+            mb_convert_encoding( '<?php ' . PHP_EOL . trim( $this->sHeaderComment ) . PHP_EOL, 'UTF-8', 'auto' ),
             'return' === $this->aOptions[ 'output_var_name' ]
                 ? "return {$_sOpening}" . PHP_EOL
                 : $this->aOptions[ 'output_var_name' ] . " = {$_sOpening} " . PHP_EOL,
@@ -250,8 +264,6 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
 
             }
 
-
-
     /**
      * @param  string       $sBaseDirPath
      * @param  array|string $asScanDirPaths
@@ -274,8 +286,25 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
          * @since  1.1.0
          */
         private function ___getOptionsFormatted( array $aOptions ) {
+
             $aOptions			    = $aOptions + self::$_aStructure_Options;
             $aOptions[ 'search' ]	= $aOptions[ 'search' ] + self::$_aStructure_Options[ 'search' ];
+
+            // Backward compat
+            /// Handle header comment arguments
+            $_aLegacyKeys           = [
+                'header_class_name' => 'class',
+                'header_class_path' => 'path',
+                'header_type'       => 'type',
+            ];
+            foreach( $_aLegacyKeys as $_sLegacyKey => $_sNewKey ) {
+                if ( empty( $aOptions[ $_sLegacyKey ] ) ) {
+                    continue;
+                }
+                $aOptions[ 'comment_header' ][ $_sNewKey ] = $aOptions[ $_sLegacyKey ];
+                unset( $aOptions[ $_sLegacyKey ] );
+            }
+
             return $aOptions;
         }
         /**
@@ -294,7 +323,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
         }
             private function ___setProjectHeaderComment() {
                 try {
-                    $_oHeaderGenerator    = new HeaderGenerator( $this->aItems, $this->aOptions );
+                    $_oHeaderGenerator    = new HeaderGenerator( $this->aItems, $this->aOptions[ 'comment_header' ] );
                     $this->sHeaderComment = $_oHeaderGenerator->get();
                     if ( ! $this->sHeaderComment ) {
                         throw new \ReflectionException( 'No header comment generated.' );
