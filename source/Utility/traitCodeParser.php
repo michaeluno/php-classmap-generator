@@ -11,6 +11,7 @@ trait traitCodeParser {
      * @param   string $sClassName
      * @throws \ReflectionException
      * @return string
+     * @remark The extracted comments are enclosed in the PHP comment syntax (/* * /).
      */
     protected function _getClassDocBlock( $sClassName ) {
         $_oRC = new \ReflectionClass( $sClassName );
