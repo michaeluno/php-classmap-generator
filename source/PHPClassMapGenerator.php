@@ -102,33 +102,29 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
 
     }
 
-    static protected $_aStructure_Options = array(
+    static protected $_aStructure_Options = [
 
-        'header_class_name'		=> '',
-        'header_class_path'		=> '',
-        'header_type'			=> 'DOCBLOCK', // or 'CONSTANT
-
-        'output_buffer'			=> true,
-        'exclude_classes'		=> array(
+        'output_buffer'         => true,
+        'exclude_classes'       => [
             // 'Foo/Bar' // for name spaced classes, include the name space
-        ),
+        ],
 
-        'base_dir_var'			=> '__DIR__',
-        'output_var_name'		=> '$aClassMap',
+        'base_dir_var'          => '__DIR__',
+        'output_var_name'       => '$aClassMap',
         'structure'             => 'CLASS',     // 1.1.0 Accepted values: `CLASS`, `PATH` For `CLASS`, the generated array keys consist of class names. For `PATH` array keys will consist of file paths.
         'do_in_constructor'     => true,        // 1.1.0 Whether to perform the task in the constructor
         'short_array_syntax'    => false,       // [1.2.0+]
 
         // Search options
-        'search'	=>	array(
-            'allowed_extensions'	=>	array( 'php' ),	 // e.g. array( 'php', 'inc' )
-            'exclude_substrings'	=>	array(),	     // e.g. array( '.min.js', '-dont-' )
-            'exclude_dir_paths'		=>	array(),
-            'exclude_dir_names'		=>	array(),
-            'exclude_file_names'     => array(),         // 1.0.3+ includes an file extension.
-            'is_recursive'			=>	true,
-            'ignore_note_file_names' => array( 'ignore-class-map.txt' ) // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
-        ),
+        'search'                => [
+            'allowed_extensions'     =>	[ 'php' ],	 // e.g. array( 'php', 'inc' )
+            'exclude_substrings'     =>	[],	     // e.g. array( '.min.js', '-dont-' )
+            'exclude_dir_paths'      =>	[],
+            'exclude_dir_names'      =>	[],
+            'exclude_file_names'     => [],         // 1.0.3+ includes an file extension.
+            'is_recursive'			 =>	true,
+            'ignore_note_file_names' => ['ignore-class-map.txt'] // 1.1.0 When this option is present and the parsing directory contains a file matching one of the set names, the directory will be skipped.
+        ],
 
     );
 
