@@ -24,7 +24,8 @@ trait traitCodeParser {
     static public function getMultiLineCommentUnwrapped( $sMultiLineComment ) {
         $_sText = '';
         preg_match( '/\/\*+?(.*)\*\//Us', $sMultiLineComment, $_aMatches );
-        foreach( preg_split("/\r\n|\n|\r/", trim( $_aMatches[ 1 ], '\t\n\r\0\x0B' ) ) as $_i => $_sLine ) {
+        $_sMultiLineComment = isset( $_aMatches[ 1 ] ) ? trim( $_aMatches[ 1 ], '\t\n\r\0\x0B' ) : '';
+        foreach( preg_split("/\r\n|\n|\r/", $_sMultiLineComment ) as $_i => $_sLine ) {
             $_sText .= preg_replace( '/^(\s|\/)+\*+(\s|$)/', '', $_sLine ) . PHP_EOL;
         }
         return trim( $_sText );
