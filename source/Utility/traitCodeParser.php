@@ -75,8 +75,7 @@ trait traitCodeParser {
     protected function _getPHPCode( $sFilePath ) {
         $_sCode = php_strip_whitespace( $sFilePath );
         $_sCode = preg_replace( '/^<\?php/', '', $_sCode );
-        $_sCode = preg_replace( '/\?>\s+?$/', '', $_sCode );
-        return $_sCode;
+        return preg_replace( '/\?>\s+?$/', '', $_sCode );
     }
 
     /**
