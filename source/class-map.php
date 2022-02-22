@@ -1,9 +1,10 @@
 <?php 
 /**
- * Helps generate class maps of PHP files.
+ * PHP Class Map Generator
  *
- * The feature includes generating path lists of specified file types.
- * 
+ * Helps generate class maps of PHP files. The feature includes generating path lists of specified file types.
+ *
+ * @url       https://github.com/michaeluno/php-classmap-generator
  * @author    Michael Uno <michael@michaeluno.jp>
  * @copyright 2020- (c) Michael Uno
  * @license   MIT <http://opensource.org/licenses/MIT>
