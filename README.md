@@ -23,7 +23,7 @@ $aClassMap = array(
 );
 ```
 
-Before include the map file, define the constant `CLASS_MAP_BASE_DIR_VAR`. 
+Before including the map file, define the constant `CLASS_MAP_BASE_DIR_VAR` in your PHP script. 
 
 ```php
     define( 'CLASS_MAP_BASE_DIR_VAR', __DIR__ );
