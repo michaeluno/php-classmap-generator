@@ -109,7 +109,7 @@ class PHPClassMapGenerator implements interfacePHPClassMapGenerator {
             // 'Foo/Bar' // for name spaced classes, include the name space
         ],
 
-        'base_dir_var'          => '__DIR__',
+        'base_dir_var'          => 'CLASS_MAP_BASE_DIR_VAR',
         'output_var_name'       => '$aClassMap',
         'structure'             => 'CLASS',     // 1.1.0 Accepted values: `CLASS`, `PATH` For `CLASS`, the generated array keys consist of class names. For `PATH` array keys will consist of file paths.
         'do_in_constructor'     => true,        // 1.1.0 Whether to perform the task in the constructor
