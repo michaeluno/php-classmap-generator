@@ -1,6 +1,14 @@
 # PHP Class Map Generator
 A PHP class that generates class maps for autoload.
 
+## Installation
+### Composer
+To install using Composer, run 
+
+```bash
+composer require michaeluno/php-classmap-generator
+```
+
 ## Usage
 Instantiate the class with options.
 
