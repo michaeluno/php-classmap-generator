@@ -70,7 +70,7 @@ This parameter accepts an array holding options.
 
  - `output_buffer`		: (boolean)	whether output buffer should be printed.     
  - `exclude_classes` 	: (array)   an array holding class names to exclude.
- - `base_dir_var`		: (string)	the variable or constant name that is prefixed before the inclusion path.
+ - `base_dir_var`		: (string)	the variable or constant name that is prefixed before the inclusion path. Default: `__DIR__`.
  - `output_var_name`	: (string)  the variable string that the map array is assigned to. Default: `$aClassMap`. If `return` is set, the variable will not be set but the file just returns the generated map array. 
  - `do_in_constructor`  : (boolean) whether to perform the action in the constructor. Default: `true`.
  - `structure`          : (string) either `CLASS` or `PATH`. When `CLASS` is set, the generated array keys consist of class names. When `PATH` is set, the generated array keys consist of paths. Default: `CLASS`.
@@ -143,5 +143,23 @@ print_r( $_oGenerator->get() );
 ```
 To find JavaScript files, change the `'css'` part to `'js'` in the `allowed_extensions` search argument.
  
+## Bundled Utility Autoloader
+This package includes an autoloader.
+
+### Examples
+#### Including an array of class list
+```
+$_aClassMap = [
+  "PHPClassMapGenerator\\PHPClassMapGenerator" => __DIR__ . "/PHPClassMapGenerator.php",
+  "PHPClassMapGenerator\\Autoload" => __DIR__ . "/autoload.php",
+];
+PHPClassMapGenerator\Utility\Autoload::set( $_aClassMap );
+```
+
+#### Including the class map file that returns an array of class list
+```
+PHPClassMapGenerator\Utility\Autoload::set( include( __DIR__ . '/class-map.php' ) );
+```
+
  ## License
  Licensed under [MIT](./LICENSE).

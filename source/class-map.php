@@ -7,11 +7,11 @@
  */
 return array(
     "PHPClassMapGenerator\\PHPClassMapGenerator" => __DIR__ . "/PHPClassMapGenerator.php", 
-    "PHPClassMapGenerator\\Autoload" => __DIR__ . "/autoload.php", 
     "PHPClassMapGenerator\\interfacePHPClassMapGenerator" => __DIR__ . "/interfacePHPClassMapGenerator.php", 
     "PHPClassMapGenerator\\FileSystem\\FileListGenerator" => __DIR__ . "/FileSystem/FileListGenerator.php", 
     "PHPClassMapGenerator\\FileSystem\\traitFileSearch" => __DIR__ . "/FileSystem/traitFileSearch.php", 
     "PHPClassMapGenerator\\Header\\HeaderGenerator" => __DIR__ . "/Header/HeaderGenerator.php", 
+    "PHPClassMapGenerator\\Utility\\AutoLoad" => __DIR__ . "/Utility/AutoLoad.php", 
     "PHPClassMapGenerator\\Utility\\traitCodeParser" => __DIR__ . "/Utility/traitCodeParser.php", 
     "PHPClassMapGenerator\\Utility\\traitPath" => __DIR__ . "/Utility/traitPath.php", 
 );
