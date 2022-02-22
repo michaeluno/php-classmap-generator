@@ -8,8 +8,8 @@ class HeaderGenerator {
 
     use traitCodeParser;
 
-    public $aItems   = array();
-    public $aOptions = array();
+    public $aItems   = [];
+    public $aOptions = [];
 
     /**
      * HeaderGenerator constructor.
@@ -111,12 +111,12 @@ class HeaderGenerator {
 
                 $_oRC           = new \ReflectionClass( $sClassName );
                 $_aConstants    = $_oRC->getConstants();
-                $_aConstants    = array_change_key_case( $_aConstants, CASE_UPPER ) + array(
+                $_aConstants    = array_change_key_case( $_aConstants, CASE_UPPER ) + [
                     'NAME'          => '',  'VERSION'       => '', 'DESCRIPTION'   => '',
                     'URI'           => '',  'AUTHOR'        => '', 'AUTHOR_URI'    => '',
                     'COPYRIGHT'     => '',  'LICENSE'       => '', 'CONTRIBUTORS'  => '',
-                );
-                $_aOutputs      = array();
+                    ];
+                $_aOutputs      = [];
                 $_aOutputs[]    = '/**';
                 $_aOutputs[]    = ( $_aConstants[ 'NAME' ] ? "    " . $_aConstants[ 'NAME' ] . ' ' : '' )
                     . ( $_aConstants[ 'VERSION' ]   ? 'v' . $_aConstants[ 'VERSION' ] . ' '  : '' )
