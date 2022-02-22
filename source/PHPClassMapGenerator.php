@@ -8,7 +8,7 @@
  * @author    Michael Uno <michael@michaeluno.jp>
  * @copyright 2020- (c) Michael Uno
  * @license   MIT <http://opensource.org/licenses/MIT>
- * @version   1.3.0
+ * @version   1.3.1
  */
 
 namespace PHPClassMapGenerator;
