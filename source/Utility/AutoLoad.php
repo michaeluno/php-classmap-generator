@@ -28,7 +28,11 @@ class AutoLoad {
      */
     public function __construct( array $aClasses ) {
         $this->aClasses = $aClasses;
-        spl_autoload_register( array( $this, 'replyToIncludeClass' ), false );
+        if ( version_compare(PHP_VERSION, '8.0.0', '>=') ) {
+            spl_autoload_register( array( $this, 'replyToIncludeClass' ) );
+        } else {
+            spl_autoload_register( array( $this, 'replyToIncludeClass' ), false );
+        }
     }
 
     /**

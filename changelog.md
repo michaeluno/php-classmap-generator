@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.1 - 2022/02/03
+- Fixed a notice "spl_autoload_register(): Argument #2 has been ignored" in PHP 8.
+- Fixed undefined warnings.
+
 ## 1.3.0 - 2022/02/22
 - Added the ability to specify a comment header of a specified file.
 - Added the autoloader utility class.
